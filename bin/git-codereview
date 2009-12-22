@@ -3,7 +3,7 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.curdir), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
 
 from codereview import get_status, complete_review
 
