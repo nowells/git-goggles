@@ -2,6 +2,11 @@ import subprocess
 import sys
 
 from git import get_current_branch, get_tags, get_branches
+try:
+    from termcolor import colored
+except ImportError:
+    raise ImportError('You must run "pip install termcolor" to use this library')
+
 
 def get_status():
     branches = get_branches()
@@ -11,7 +16,7 @@ def get_status():
 
     for branch in branches:
         if "%s-codereview" % branch not in tags:
-            print "%s needs to be reviewed (no tag)" % branch
+            print colored("%s needs to be reviewed (no tag)" % branch, 'red')
         else:
             p = subprocess.Popen([
                 'git',
@@ -20,7 +25,9 @@ def get_status():
                 ], stdout=subprocess.PIPE)
             output = p.communicate()[0]
             if output:
-                print '%s needs to be reviewed with following diff:\n %s' % (branch, output)
+                print '%s needs to be reviewed:' % branch
+            else:
+                print colored('%s is already reviewed.' % branch, 'green')
 
 
 def complete_review():
