@@ -7,6 +7,8 @@ def get_status():
     branches = get_branches()
     tags = get_tags()
 
+    branches = filter(lambda x: x != 'master', branches)
+
     for branch in branches:
         if "%s-codereview" % branch not in tags:
             print "%s needs to be reviewed (no tag)" % branch
