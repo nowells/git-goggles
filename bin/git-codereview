@@ -8,6 +8,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src
 from codereview import get_status, complete_review
 
 if __name__ == "__main__":
+    if not os.path.exists('.git'):
+        print 'Not within a git repository.'
+        sys.exit(1)
+
     if len(sys.argv) == 1:
         get_status()
     elif len(sys.argv) == 2:
