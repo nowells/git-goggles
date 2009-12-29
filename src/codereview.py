@@ -60,7 +60,7 @@ def get_status():
         content_length('branch', branch)
 
     # Print out pretty upper container
-    print '%s-%s-%s-%s-%s' % (
+    print '-%s-%s-%s-%s-%s-' % (
         '-'.join([ '' for x in range(content_length('status') + len('  ') + 1) ]),
         '-'.join([ '' for x in range(content_length('branch') + len('  ') + 1) ]),
         '-'.join([ '' for x in range(16 + 1) ]),
@@ -77,7 +77,7 @@ def get_status():
         branch = s['branch']
         status = s['status']
 
-        print '%s|%s|%s|%s|%s' % (
+        print '|%s|%s|%s|%s|%s|' % (
             colored(' %s ' % status.upper().rjust(content_length('status')), color),
             ' %s ' % branch.ljust(content_length('branch')),
             colored((' %s unreviewed ' % review_commits).rjust(16), review_commits and color or None, attrs=review_commits and ['reverse'] or []),
@@ -86,7 +86,7 @@ def get_status():
             )
 
     # Print out pretty lower container
-    print '%s-%s-%s-%s-%s' % (
+    print '-%s-%s-%s-%s-%s-' % (
         '-'.join([ '' for x in range(content_length('status') + len('  ') + 1) ]),
         '-'.join([ '' for x in range(content_length('branch') + len('  ') + 1) ]),
         '-'.join([ '' for x in range(16 + 1) ]),
