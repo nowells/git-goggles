@@ -16,16 +16,24 @@ def get_status():
 
     branches = filter(lambda x: x != 'master', branches)
 
+    def status(text, color='red'):
+        return colored('[ %s ]' % text.upper().rjust(6), color)
+
     for branch in branches:
+        s = status('?')
         if "%s-codereview" % branch not in tags:
-            print colored("%s needs to be reviewed (no tag)" % branch, 'red')
+            s = status('new', 'red')
         else:
             output = repo.git('diff', '%s-codereview..%s' % (branch, branch))
             if output:
-                print '%s needs to be reviewed:' % branch
+                s = status('review', 'red')
             else:
-                print colored('%s is already reviewed.' % branch, 'green')
+                if repo.git('diff', 'staging..%s' % branch):
+                    s = status('merge', 'yellow')
+                else:
+                    s = status('done', 'green')
 
+        print '%s %s' % (s, branch)
 
 def complete_review():
     repo = Repository()
