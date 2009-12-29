@@ -11,7 +11,7 @@ except ImportError:
 def get_status():
     repo = Repository()
     repo.fetch()
-    branches = repo.branches()
+    branches = repo.branches('origin')
     tags = repo.tags()
 
     branches = filter(lambda x: x != 'master', branches)
