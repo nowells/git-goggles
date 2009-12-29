@@ -10,6 +10,7 @@ except ImportError:
 
 def get_status():
     branches = get_branches()
+    subprocess.Popen(['git', 'fetch', '--tags']).communicate()
     tags = get_tags()
 
     branches = filter(lambda x: x != 'master', branches)
@@ -32,14 +33,8 @@ def get_status():
 
 def complete_review():
     branch = get_current_branch()
-    p = subprocess.Popen([
-        'git',
-        'tag',
-        '-a',
-        '%s-codereview' % branch,
-        '-f',
-        '-m',
-        'creating code review for branch %s' % branch,
-        ])
-    p.communicate()
+    subprocess.Popen(['git', 'fetch', '--tags']).communicate()
+    subprocess.Popen(['git', 'tag', '-a', '%s-codereview' % branch, '-f', '-m', 'creating code review for branch %s' % branch]).communicate()
+    subprocess.Popen(['git', 'push', '--tags']).communicate()
+
     print 'created tag %s-codereview' % branch

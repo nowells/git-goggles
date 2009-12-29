@@ -13,6 +13,7 @@ def get_branches():
 
 
 def get_tags():
+    subprocess.Popen(['git', 'fetch', '--tags']).communicate()
     p = subprocess.Popen(['git', 'tag'], stdout=subprocess.PIPE)
     output = p.communicate()[0].split('\n')
     return filter(lambda x: x.endswith('-codereview'), output)
