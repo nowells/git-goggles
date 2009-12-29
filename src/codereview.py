@@ -1,17 +1,18 @@
 import subprocess
 import sys
 
-from git import get_current_branch, get_tags, get_branches
+from git import Repository
+
 try:
     from termcolor import colored
 except ImportError:
     raise ImportError('You must run "pip install termcolor" to use this library')
 
-
 def get_status():
-    branches = get_branches()
-    subprocess.Popen(['git', 'fetch', '--tags']).communicate()
-    tags = get_tags()
+    repo = Repository()
+    repo.fetch()
+    branches = repo.branches()
+    tags = repo.tags()
 
     branches = filter(lambda x: x != 'master', branches)
 
@@ -19,12 +20,7 @@ def get_status():
         if "%s-codereview" % branch not in tags:
             print colored("%s needs to be reviewed (no tag)" % branch, 'red')
         else:
-            p = subprocess.Popen([
-                'git',
-                'diff',
-                '%s-codereview..%s' % (branch, branch)
-                ], stdout=subprocess.PIPE)
-            output = p.communicate()[0]
+            output = repo.git('diff', '%s-codereview..%s' % (branch, branch))
             if output:
                 print '%s needs to be reviewed:' % branch
             else:
@@ -32,9 +28,9 @@ def get_status():
 
 
 def complete_review():
-    branch = get_current_branch()
-    subprocess.Popen(['git', 'fetch', '--tags']).communicate()
-    subprocess.Popen(['git', 'tag', '-a', '%s-codereview' % branch, '-f', '-m', 'creating code review for branch %s' % branch]).communicate()
-    subprocess.Popen(['git', 'push', '--tags']).communicate()
-
+    repo = Repository()
+    repo.fetch()
+    branch = repo.branch()
+    repo.git('tag', '-a', '%s-codereview' % branch, '-f', '-m', 'creating code review for branch %s' % branch)
+    repo.git('push', '--tags')
     print 'created tag %s-codereview' % branch

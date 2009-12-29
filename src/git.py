@@ -1,19 +1,41 @@
+import os
 import subprocess
 
-def get_current_branch():
-    p = subprocess.Popen(['git', 'branch'], stdout=subprocess.PIPE)
-    output = p.communicate()[0].split('\n')
-    return [line[2:] for line in output if line and line[0] == '*'][0]
+class Repository(object):
+    def __init__(self, path=None):
+        self.path = os.path.abspath(path or os.path.curdir)
 
+    def git(self, *args, **kwargs):
+        split = kwargs.pop('split', False)
+        command = ['git'] + list(args)
+        p = subprocess.Popen(command, stdout=subprocess.PIPE)
+        output = p.communicate()[0]
+        if split:
+            output = filter(lambda x: x, output.split('\n'))
+        return output
 
-def get_branches():
-    p = subprocess.Popen(['git', 'branch'], stdout=subprocess.PIPE)
-    output = p.communicate()[0].split('\n')
-    return [line[2:] for line in output if line]
+    def fetch(self):
+        self.git('fetch')
+        self.git('fetch', '--tags')
 
+    def __branches(self):
+        branches = self.git('branch', '-a', split=True)
+        for branch in branches:
+            _, current, branch = branch.rpartition('*')
+            current, branch = bool(current), branch.strip()
+            remote, _, branch = branch.rpartition('/')
+            _, _, remote = remote.rpartition('remotes/')
+            remote = remote or None
+            yield current, remote, branch
 
-def get_tags():
-    subprocess.Popen(['git', 'fetch', '--tags']).communicate()
-    p = subprocess.Popen(['git', 'tag'], stdout=subprocess.PIPE)
-    output = p.communicate()[0].split('\n')
-    return filter(lambda x: x.endswith('-codereview'), output)
+    def tags(self):
+        return self.git('tag', split=True)
+
+    def branch(self):
+        for current, remote, branch in self.__branches():
+            if current:
+                return branch
+        return None
+
+    def branches(self, remote=None):
+        return [ branch for current, _remote, branch in self.__branches() if remote == _remote ]
