@@ -6,7 +6,10 @@ from git import Repository
 try:
     from termcolor import colored
 except ImportError:
-    raise ImportError('You must run "pip install termcolor" to use this library')
+    print 'You should run "pip install termcolor" to fully utilize these utilities.'
+
+    def colored(text, *args, **kwargs):
+        print text
 
 CONTENT_LENGTHS = {}
 def content_length(key, text=None):
