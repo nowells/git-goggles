@@ -24,11 +24,11 @@ def get_status():
         if "%s-codereview" % branch not in tags:
             s = status('new', 'red')
         else:
-            output = repo.git('diff', '%s-codereview..%s' % (branch, branch))
+            output = repo.git('log', '%s-codereview..%s' % (branch, branch))
             if output:
                 s = status('review', 'red')
             else:
-                if repo.git('diff', 'staging..%s' % branch):
+                if repo.git('log', 'staging..%s' % branch):
                     s = status('merge', 'yellow')
                 else:
                     s = status('done', 'green')
