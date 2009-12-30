@@ -5,7 +5,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
 
-from codereview import get_status, complete_review
+from codereview import get_status, complete_review, start_review
 
 if __name__ == "__main__":
     if not os.path.exists('.git'):
@@ -17,5 +17,7 @@ if __name__ == "__main__":
     elif len(sys.argv) == 2:
         if sys.argv[1] == 'complete':
             complete_review()
+        elif sys.argv[1] == 'start':
+            start_review()
         else:
-            print 'usage: git codereview [complete]'
+            print 'usage: git codereview [complete|start]'
