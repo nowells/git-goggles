@@ -7,12 +7,19 @@ class Repository(object):
 
     def git(self, *args, **kwargs):
         split = kwargs.pop('split', False)
+        join = kwargs.pop('join', False)
+
         command = ['git'] + list(args)
-        p = subprocess.Popen(command, stdout=subprocess.PIPE)
-        output = p.communicate()[0]
-        if split:
-            output = filter(lambda x: x, output.split('\n'))
-        return output
+
+        if join:
+            p = subprocess.Popen(command)
+            p.communicate()
+        else:
+            p = subprocess.Popen(command, stdout=subprocess.PIPE)
+            output = p.communicate()[0]
+            if split:
+                output = filter(lambda x: x, output.split('\n'))
+            return output
 
     def fetch(self):
         self.git('fetch')
