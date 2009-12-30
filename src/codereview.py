@@ -23,7 +23,6 @@ def get_status():
     local_branches = repo.branches()
     tags = repo.tags()
 
-    branches = filter(lambda x: x != 'master', branches)
     branch_states = []
 
     for branch in branches:
