@@ -9,7 +9,7 @@ except ImportError:
     print 'You should run "pip install termcolor" to fully utilize these utilities.'
 
     def colored(text, *args, **kwargs):
-        print text
+        return text
 
 CONTENT_LENGTHS = {}
 def content_length(key, text=None):
