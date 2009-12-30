@@ -64,9 +64,20 @@ def get_status():
         content_length('status', status)
         content_length('branch', branch)
 
+    # Print out pretty top container
+    print u'+%s+%s+%s+%s+%s+%s+%s+' % (
+        u'-'.join([ u'' for x in range(content_length('status', 'status') + len('  ') + 1) ]),
+        u'-'.join([ u'' for x in range(content_length('branch', 'branch') + len('  ') + 1) ]),
+        u'-'.join([ u'' for x in range(16 + 1) ]),
+        u'-'.join([ u'' for x in range(11 + 1) ]),
+        u'-'.join([ u'' for x in range(12 + 1) ]),
+        u'-'.join([ u'' for x in range(6 + 1) ]),
+        u'-'.join([ u'' for x in range(6 + 1) ]),
+        )
+
     print u'|%s|%s|%s|%s|%s|%s|%s|' % (
-        u' Status '.ljust(content_length('status', 'status') + len('  ')),
-        u' Branch '.ljust(content_length('branch', 'branch') + len('  ')),
+        u' Status '.ljust(content_length('status') + len('  ')),
+        u' Branch '.ljust(content_length('branch') + len('  ')),
         u' Review '.ljust(16),
         u' Ahead '.ljust(11),
         u' Behind '.ljust(12),
@@ -75,7 +86,7 @@ def get_status():
         )
 
     # Print out pretty upper container
-    print '-%s-%s-%s-%s-%s-%s-%s-' % (
+    print '+%s+%s+%s+%s+%s+%s+%s+' % (
         u'-'.join([ u'' for x in range(content_length('status') + len('  ') + 1) ]),
         u'-'.join([ u'' for x in range(content_length('branch') + len('  ') + 1) ]),
         u'-'.join([ u'' for x in range(16 + 1) ]),
@@ -108,7 +119,7 @@ def get_status():
             )
 
     # Print out pretty lower container
-    print u'-%s-%s-%s-%s-%s-%s-%s-' % (
+    print u'+%s+%s+%s+%s+%s+%s+%s+' % (
         u'-'.join([ u'' for x in range(content_length('status') + len('  ') + 1) ]),
         u'-'.join([ u'' for x in range(content_length('branch') + len('  ') + 1) ]),
         u'-'.join([ u'' for x in range(16 + 1) ]),
