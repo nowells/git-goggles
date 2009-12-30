@@ -25,24 +25,17 @@ class Repository(object):
         self.git('fetch')
         self.git('fetch', '--tags')
 
-    def __branches(self):
-        branches = self.git('branch', '-a', split=True)
-        for branch in branches:
-            _, current, branch = branch.rpartition('*')
-            current, branch = bool(current), branch.strip()
-            remote, _, branch = branch.rpartition('/')
-            _, _, remote = remote.rpartition('remotes/')
-            remote = remote or None
-            yield current, remote, branch
+    def branches(self, remote=None):
+        if remote is None:
+            return [ x.split()[1].split('/')[2] for x in self.git('show-ref', '--heads', split=True) if not x.endswith('^{}') ]
+        else:
+            return [ x.split()[1].split('/')[2] for x in self.git('ls-remote', '--heads', remote, split=True) if not x.endswith('^{}') ]
 
-    def tags(self):
-        return self.git('tag', split=True)
+    def tags(self, remote=None):
+        if remote is None:
+            return [ x.split()[1].split('/')[2] for x in self.git('show-ref', '--tags', split=True) if not x.endswith('^{}') ]
+        else:
+            return [ x.split()[1].split('/')[2] for x in self.git('ls-remote', '--tags', remote, split=True) if not x.endswith('^{}') ]
 
     def branch(self):
-        for current, remote, branch in self.__branches():
-            if current:
-                return branch
-        return None
-
-    def branches(self, remote=None):
-        return [ branch for current, _remote, branch in self.__branches() if remote == _remote ]
+        return self.git('symbolic-ref', 'HEAD').split('/')[2]

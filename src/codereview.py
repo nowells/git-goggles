@@ -21,7 +21,7 @@ def get_status():
     repo.fetch()
     branches = repo.branches('origin')
     local_branches = repo.branches()
-    tags = repo.tags()
+    tags = repo.tags('origin')
 
     branch_states = []
 
