@@ -134,4 +134,13 @@ def start_review():
     repo = Repository()
     repo.fetch()
     branch = repo.branch()
-    repo.git('diff', '-w', '%s-codereview..%s' % (branch, branch), join=True)
+    tags = repo.tags()
+
+    parent = branch in ('staging', 'master',) and 'master' or 'staging'
+
+    cr_tag = '%s-codereview' % branch
+
+    if cr_tag in tags:
+        repo.git('diff', '-w', '%s..%s' % (cr_tag, branch), join=True)
+    else:
+        repo.git('diff', '-w', '%s..%s' % (parent, branch), join=True)
