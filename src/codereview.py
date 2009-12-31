@@ -71,7 +71,7 @@ def complete_review():
     repo.git('push', '--tags')
     print 'Created tag %s-codereview' % branch
     repo.git('checkout', 'staging')
-    print colored('Switched back to staging branch.', 'yellow')
+    print 'Switched back to staging branch.'
 
 def start_review():
     repo = Repository()

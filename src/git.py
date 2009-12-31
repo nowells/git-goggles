@@ -27,15 +27,15 @@ class Repository(object):
 
     def branches(self, remote=None):
         if remote is None:
-            return [ x.split()[1].split('/')[2] for x in self.git('show-ref', '--heads', split=True) if not x.endswith('^{}') ]
+            return [ x.split()[1].split('/')[2].strip() for x in self.git('show-ref', '--heads', split=True) if not x.endswith('^{}') ]
         else:
-            return [ x.split()[1].split('/')[2] for x in self.git('ls-remote', '--heads', remote, split=True) if not x.endswith('^{}') ]
+            return [ x.split()[1].split('/')[2].strip() for x in self.git('ls-remote', '--heads', remote, split=True) if not x.endswith('^{}') ]
 
     def tags(self, remote=None):
         if remote is None:
-            return [ x.split()[1].split('/')[2] for x in self.git('show-ref', '--tags', split=True) if not x.endswith('^{}') ]
+            return [ x.split()[1].split('/')[2].strip() for x in self.git('show-ref', '--tags', split=True) if not x.endswith('^{}') ]
         else:
-            return [ x.split()[1].split('/')[2] for x in self.git('ls-remote', '--tags', remote, split=True) if not x.endswith('^{}') ]
+            return [ x.split()[1].split('/')[2].strip() for x in self.git('ls-remote', '--tags', remote, split=True) if not x.endswith('^{}') ]
 
     def branch(self):
-        return self.git('symbolic-ref', 'HEAD').split('/')[2]
+        return self.git('symbolic-ref', 'HEAD').split('/')[2].strip()
