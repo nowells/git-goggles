@@ -1,101 +1,104 @@
-###################
- Django-Pluggables
-###################
-Django-Pluggables provides a design pattern for making reusable apps "pluggable" so that apps can exist at multiple URL locations and be presented by other apps or models.
+#######################
+ git-codereview Readme
+#######################
+
+git-codereview is a git management utilities that allows you to manage your source code as
+it evolves through its development lifecycle.
+
+Candidate Names
+===============
+* git-codereview
+* git-branch-manager
+* git-scrutinize
+* git-goggles
+* git-sanity
+* git-peerreview
+* git-slavedriver
 
 Overview
 ========
-Django-Pluggables is a design pattern that endows reusable applications with a few additional features:
 
-#. Applications can exist at multiple URL locations (e.g. http://example.com/foo/app/ and http://example.com/bar/app/).
-#. Applications can be "parented" to other applications or objects which can then deliver specialized context information.
-#. Posting form data and error handling can happen in locations that make sense to the user, as opposed to the common practice of using templatetags and standalone error or preview pages for form data processing.
-#. Views and templates remain generic and reusable.
+This project accomplishes two things:
+
+* Manage the code review state of your branches
+* Gives a snapshot of the where your local branches are vs origin in terms of being ahead / behind on commits
+
+Field Reference
+===============
+
+In the table outputted by git-codereview, each row corresponds to a branch, with the following fields:
+
+* Status: the current status of your branch
+
+    * new: this is a branch that has never been through the review process
+    * review: this branch has code that needs to be reviewed
+    * merge: everything has been reviewed, but needs to be merged into parent (same as done for being ahead)
+    * done: reviewed and merged (doens't matter if you're behind but you can't be ahead)
+
+* Branch: the branch name
+
+* Review: how many commits have taken place since the last review
+
+* Ahead: how many commits are in your local branch that are not in origin
+
+* Behind: how many commits are in origin that are not in your local branch
+
+* Pull & Push: whether your branches need to be pushed or pulled to track origin
+
+    * green checkbox: you don't need to pull    
+    * red cross: you need to pull
+    * question mark: you either don't have a checked out copy of this branch or you need to prune your local tree
 
 Installation
 ============
 
-Django-Pluggables can be added to your Django project like any other reusable app. To see the examples in action, fun the following commands:
+Checkout the project from github XXXaddurlonceitexistsXXX:
 
-First off, the native Mac implementation of sed is not as robust as we expect. Therefore install `Super Sed <http://sed.sourceforge.net/grabbag/ssed/>`_  Then run ::
+::
 
-   $ easy_install Fabric==0.1.1 pip virtualenv
-   $ fab bootstrap
-   $ ./examples/sillywalks/manage.py runserver
+  git clone XXXgiturlXXX
 
-Voila! You now have a fully functional site running at http://127.0.0.1:8000/
+Add to your .bashrc or .profile:
+
+::
+
+  export PATH=$PATH:/<path_to_git-codereview>/bin
+
+**Documentation**:
+With `Sphinx <http://sphinx.pocoo.org/>`_ doc deployment: in the doc/ directory, type:
+
+::
+
+  make html
+
+Then open ``doc/_build/index.html``
 
 Usage
 =====
 
-To utilize Django-Pluggables, you will need to do a little bit of configuration. First you must have a two applications:
+Viewing the status of your branches:
 
-#. A reusable app that will be made Pluggable.
-#. An app that will expose an instance of the Pluggable app in its URL hierarchy (this app does not need to be reusable).
+::
 
-Installation and development of these two apps can begin normally. The individual functions of the apps should be standalone. The Django-Pluggables pattern delivers needed context and parameters to the app that is being made Pluggable when it is called from the URL hierarchy of the other app.
+  git codereview
 
-To set up the relationship between these two apps, it is necessary to define two items:
+Starting your review process (shows an origin diff):
 
-#. The URLconf that defines the URLs that will invoke the Pluggable app instance.
-#. The pluggable definition that will supply the Pluggable app with its required context and parameters.
+::
 
-.. note::
+  git codereview start
 
-    In the following examples we will use two imaginary apps: ``sillywalks`` and ``complaints``. These would be imported in your modules like so::
+Complete your review process (automatically pushes up):
 
-        from sillywalks.models import Walk
-        from complaints.models import Complaint
+::
 
-    In the examples we discuss below, the ``sillywalks`` app lives at the URL::
+  git codereview complete
 
-        http://example.com/sillywalks/
+Internals
+=========
 
-    The ``sillywalks`` app utilizes the ``complaints`` app to field complaints about various types of walk. To provide an excellent user experience, the ``complaints`` forms and functionality should be presented at a URL beneath the ``sillywalks`` URL::
+git-codereview works by creating and managing special tags called
+'codereview-<branch_name>' and tracking them against HEAD.
 
-        http://example.com/sillywalks/<walk_name>/complaints/
-
-    Also, the presentation of ``complaints`` functionality beneath the ``sillywalks`` app should adhere to the ``sillywalks`` templates pattern, including various walk-specific information that must be supplied through additional, non- ``complaints`` app context.
-
-Defining the URLconf
---------------------
-In order to make the ``complaints`` app pluggable, we first must define a pluggable URLs file for it::
-
-    class ComplaintsPluggable(PluggableApp):
-        urlpatterns = patterns('',
-            url(r'^$', 'complaints.views.view_complaint', name='complaints_view_complaint'),
-            url(r'^activity_feed/$', 'complaints.views.submit_complaint', name='complaints_submit_complaint'),
-
-    ...
-
-.. note::
-
-    Only one pluggable URLs file is required for an app that you wish to make pluggable. This URLconf may be subclassed for additional flexibility when using the pluggable app in conjunction with other apps, but it is likely that one definition of pluggable URLs will be sufficient for most use cases.
-
-Defining the Pluggable Config and Context
------------------------------------------
-
-Once the ``complaints`` app has been set up with the pluggable URLs, it is necessary to define the context that will be delivered to the ``complaints`` app and add these URLs to the URLconf for the ``sillywalks`` app::
-
-    from complaints.urls import ComplaintsPluggable
-
-    class SillyWalkComplaints(ComplaintsPluggable):
-        def pluggable_view_context(self, request, complaint_id):
-            return dict(complaint_id=complaint_id)
-
-        def pluggable_template_context(self, request, slug):
-            return dict(silly_walk=SillyWalk.objects.get(slug=slug))
-
-        def pluggable_config(self):
-            return dict(base_template='sillywalks/base.html')
-
-    urlpatterns = SillyWalkComplaints('sillywalk')
-
-More
-====
-
-The primary repository for Django-Pluggables is located at:
-
-`http://github.com/nowells/django-pluggables/ <http://github.com/nowells/django-pluggables/>`_
-
-Django-Pluggables was created by Nowell Strite.
+The first time a codereview is completed, the tag is created. Subsequent
+reviews delete and re-create the tag so that it awlays accurately tracks HEAD.
