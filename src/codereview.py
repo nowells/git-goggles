@@ -11,6 +11,8 @@ def get_status():
     local_branches = repo.branches()
     tags = repo.tags('origin')
 
+    TAG_PREFIX = 'codereview--'
+
     table = AsciiTable(['Status', 'Branch', 'Review', 'Ahead', 'Behind', 'Pull', 'Push'])
 
     for branch in branches:
@@ -24,11 +26,11 @@ def get_status():
             local_ahead_commits = repo.git('log', '--pretty=format:"- %s [%h]"', 'origin/%s..%s' % (branch, branch), split=True)
             local_behind_commits = repo.git('log', '--pretty=format:"- %s [%h]"', '%s..origin/%s' % (branch, branch), split=True)
 
-        if "%s-codereview" % branch not in tags:
+        if "%s%s" % (TAG_PREFIX, branch) not in tags:
             color, status = 'red', 'new'
             review_commits = ahead_commits
         else:
-            review_commits = repo.git('log', '--pretty=format:"- %s [%h]"', '%s-codereview..origin/%s' % (branch, branch), split=True)
+            review_commits = repo.git('log', '--pretty=format:"- %s [%h]"', '%s%s..origin/%s' % (TAG_PREFIX, branch, branch), split=True)
             if review_commits:
                 color, status = 'red', 'review'
             else:
@@ -67,9 +69,9 @@ def complete_review():
     repo = Repository()
     repo.fetch()
     branch = repo.branch()
-    repo.git('tag', '-a', '%s-codereview' % branch, '-f', '-m', 'creating code review for branch %s' % branch)
+    repo.git('tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
     repo.git('push', '--tags')
-    print 'Created tag %s-codereview' % branch
+    print 'Created tag %s%s' % (TAG_PREFIX, branch)
     repo.git('checkout', 'staging')
     print 'Switched back to staging branch.'
 
@@ -81,7 +83,7 @@ def start_review():
 
     parent = branch in ('staging', 'master',) and 'master' or 'staging'
 
-    cr_tag = '%s-codereview' % branch
+    cr_tag = '%s%s' % (TAG_PREFIX, branch)
 
     if cr_tag in tags:
         repo.git('diff', '-w', '%s..%s' % (cr_tag, branch), join=True)
