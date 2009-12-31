@@ -1,0 +1,7 @@
+include README.rst
+include LICENSE
+include AUTHORS
+include MANIFEST.in
+include INSTALL
+recursive-include *.py *.rst
+recursive-include bin
