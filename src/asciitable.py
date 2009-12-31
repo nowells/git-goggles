@@ -1,6 +1,3 @@
-import re
-import sys
-
 try:
     from termcolor import colored
 except ImportError:
@@ -15,7 +12,7 @@ class AsciiCell(object):
         self.color = color
         self.background = background
         self.attrs = reverse and ['reverse'] or []
-        self.width = len(re.sub('\x1b\[\d+m', '', value))
+        self.width = len(value)
 
 class AsciiTable(object):
     def __init__(self, headers):
