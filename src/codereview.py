@@ -1,20 +1,8 @@
 import subprocess
 import sys
 
+from asciitable import AsciiTable, AsciiCell
 from git import Repository
-
-try:
-    from termcolor import colored
-except ImportError:
-    print 'You should run "pip install termcolor" to fully utilize these utilities.'
-
-    def colored(text, *args, **kwargs):
-        return text
-
-CONTENT_LENGTHS = {}
-def content_length(key, text=None):
-    CONTENT_LENGTHS[key] = max(CONTENT_LENGTHS.get(key, 0), len(text or ''))
-    return CONTENT_LENGTHS[key]
 
 def get_status():
     repo = Repository()
@@ -23,7 +11,7 @@ def get_status():
     local_branches = repo.branches()
     tags = repo.tags('origin')
 
-    branch_states = []
+    table = AsciiTable(['Status', 'Branch', 'Review', 'Ahead', 'Behind', 'Pull', 'Push'])
 
     for branch in branches:
         parent = branch in ('staging', 'master',) and 'master' or 'staging'
@@ -49,86 +37,31 @@ def get_status():
                 else:
                     color, status = 'green', 'done'
 
-        branch_states.append({
-            'status': status,
-            'color': color,
-            'branch': branch,
-            'review_commits': review_commits,
-            'ahead_commits': ahead_commits,
-            'behind_commits': behind_commits,
-            'local_ahead_commits': local_ahead_commits,
-            'local_behind_commits': local_behind_commits,
-            })
+        review = bool(review_commits) or None
+        ahead = bool(ahead_commits) or None
+        behind = bool(behind_commits) or None
+        pull = bool(local_behind_commits) or None
+        push = bool(local_ahead_commits) or None
+        not_local = local_behind_commits is None
 
-        # Track length of longest string for each column
-        content_length('status', status)
-        content_length('branch', branch)
+        review_text, review_color = '%s unreviewed' % len(review_commits), review and color
+        ahead_text, ahead_color = '%s ahead' % len(ahead_commits), ahead and color
+        behind_text, behind_color = '%s behind' % len(behind_commits), behind and color
 
-    # Print out pretty top container
-    print u'+%s+%s+%s+%s+%s+%s+%s+' % (
-        u'-'.join([ u'' for x in range(content_length('status', 'status') + len('  ') + 1) ]),
-        u'-'.join([ u'' for x in range(content_length('branch', 'branch') + len('  ') + 1) ]),
-        u'-'.join([ u'' for x in range(16 + 1) ]),
-        u'-'.join([ u'' for x in range(11 + 1) ]),
-        u'-'.join([ u'' for x in range(12 + 1) ]),
-        u'-'.join([ u'' for x in range(6 + 1) ]),
-        u'-'.join([ u'' for x in range(6 + 1) ]),
-        )
+        pull_text, pull_color = not_local and (u'\u2049', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
+        push_text, push_color = not_local and (u'\u2049', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))
 
-    print u'|%s|%s|%s|%s|%s|%s|%s|' % (
-        u' Status '.ljust(content_length('status') + len('  ')),
-        u' Branch '.ljust(content_length('branch') + len('  ')),
-        u' Review '.ljust(16),
-        u' Ahead '.ljust(11),
-        u' Behind '.ljust(12),
-        u' Pull ',
-        u' Push ',
-        )
+        table.add_row([
+            AsciiCell(status.upper(), color),
+            AsciiCell(branch),
+            AsciiCell(review_text, review_color, reverse=review),
+            AsciiCell(ahead_text, ahead_color, reverse=ahead),
+            AsciiCell(behind_text, behind_color, reverse=behind),
+            AsciiCell(pull_text, pull_color),
+            AsciiCell(push_text, push_color),
+            ])
 
-    # Print out pretty upper container
-    print '+%s+%s+%s+%s+%s+%s+%s+' % (
-        u'-'.join([ u'' for x in range(content_length('status') + len('  ') + 1) ]),
-        u'-'.join([ u'' for x in range(content_length('branch') + len('  ') + 1) ]),
-        u'-'.join([ u'' for x in range(16 + 1) ]),
-        u'-'.join([ u'' for x in range(11 + 1) ]),
-        u'-'.join([ u'' for x in range(12 + 1) ]),
-        u'-'.join([ u'' for x in range(6 + 1) ]),
-        u'-'.join([ u'' for x in range(6 + 1) ]),
-        )
-
-    # Print out status for each branch
-    for s in branch_states:
-        review_commits = len(s['review_commits'])
-        ahead_commits = len(s['ahead_commits'])
-        behind_commits = len(s['behind_commits'])
-        color = s['color']
-        branch = s['branch']
-        status = s['status']
-        pull = bool(s['local_behind_commits'])
-        push = bool(s['local_ahead_commits'])
-        not_local = s['local_behind_commits'] is None
-
-        print u'|%s|%s|%s|%s|%s|%s|%s|' % (
-            colored(u' %s ' % status.upper().rjust(content_length('status')), color),
-            u' %s ' % branch.ljust(content_length('branch')),
-            colored((u' %s unreviewed ' % review_commits).rjust(16), review_commits and color or None, attrs=review_commits and ['reverse'] or []),
-            colored((u' %s ahead ' % ahead_commits).rjust(11), ahead_commits and color or None, attrs=ahead_commits and ['reverse'] or []),
-            colored((u' %s behind ' % behind_commits).rjust(12), behind_commits and color or None, attrs=behind_commits and ['reverse'] or []),
-            not_local and colored(u'  \u2049   ', 'yellow') or (pull and colored(u'  \u2718   ', 'red') or colored(u'  \u2714   ', 'green')),
-            not_local and colored(u'  \u2049   ', 'yellow') or (push and colored(u'  \u2718   ', 'red') or colored(u'  \u2714   ', 'green')),
-            )
-
-    # Print out pretty lower container
-    print u'+%s+%s+%s+%s+%s+%s+%s+' % (
-        u'-'.join([ u'' for x in range(content_length('status') + len('  ') + 1) ]),
-        u'-'.join([ u'' for x in range(content_length('branch') + len('  ') + 1) ]),
-        u'-'.join([ u'' for x in range(16 + 1) ]),
-        u'-'.join([ u'' for x in range(11 + 1) ]),
-        u'-'.join([ u'' for x in range(12 + 1) ]),
-        u'-'.join([ u'' for x in range(6 + 1) ]),
-        u'-'.join([ u'' for x in range(6 + 1) ]),
-        )
-
+    table.render()
 
 def complete_review():
     repo = Repository()
