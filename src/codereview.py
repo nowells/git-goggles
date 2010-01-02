@@ -2,14 +2,13 @@ import subprocess
 import sys
 
 from asciitable import AsciiTable, AsciiCell
-from git import Repository
+from git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
 
 def get_status():
     repo = Repository()
     repo.fetch()
-    refs = repo.branches('origin')
-    local_refs = repo.branches()
-    tags = repo.tags('origin')
+    refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
+    tags = repo.tags()
 
     TAG_PREFIX = 'codereview--'
 
@@ -17,20 +16,24 @@ def get_status():
 
     for ref in refs:
         parent = ref.name in ('staging', 'master',) and 'master' or 'staging'
+        codereview_tag = "%s%s" % (TAG_PREFIX, ref.shortname)
 
-        color, status, review_commits, ahead_commits, behind_commits, local_ahead_commits, local_behind_commits= 'red', '?', [], [], [], None, None
+        color = 'red'
+        status = '?'
+        review_commits = 0
+        ahead_commits = ref.ahead
+        behind_commits = ref.behind
+        pull = ref.pull
+        push = ref.push
 
-        ahead_commits = repo.git('log', '--pretty=format:"- %s [%h]"', 'origin/%s..origin/%s' % (parent, ref.name), split=True)
-        behind_commits = repo.git('log', '--pretty=format:"- %s [%h]"', 'origin/%s..origin/%s' % (ref.name, parent), split=True)
-        if ref.name in [ x.name for x in local_refs ]:
-            local_ahead_commits = repo.git('log', '--pretty=format:"- %s [%h]"', 'origin/%s..%s' % (ref.name, ref.name), split=True)
-            local_behind_commits = repo.git('log', '--pretty=format:"- %s [%h]"', '%s..origin/%s' % (ref.name, ref.name), split=True)
-
-        if "%s%s" % (TAG_PREFIX, ref.name) not in [ x.name for x in tags ]:
+        if ref.__class__ == LocalBranch:
+            color, status = 'blue', 'local'
+            review_commits = 0
+        elif codereview_tag not in [ x.name for x in tags ]:
             color, status = 'red', 'new'
             review_commits = ahead_commits
         else:
-            review_commits = repo.git('log', '--pretty=format:"- %s [%h]"', '%s%s..origin/%s' % (TAG_PREFIX, ref.name, ref.name), split=True)
+            review_commits = len(repo.git('log', '--pretty=format:"- %s [%h]"', '%s..%s' % (codereview_tag, ref.refspec), split=True))
             if review_commits:
                 color, status = 'red', 'review'
             else:
@@ -42,16 +45,14 @@ def get_status():
         review = bool(review_commits) or None
         ahead = bool(ahead_commits) or None
         behind = bool(behind_commits) or None
-        pull = bool(local_behind_commits) or None
-        push = bool(local_ahead_commits) or None
-        not_local = local_behind_commits is None
+        tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
 
-        review_text, review_color = '%s unreviewed' % len(review_commits), review and color
-        ahead_text, ahead_color = '%s ahead' % len(ahead_commits), ahead and color
-        behind_text, behind_color = '%s behind' % len(behind_commits), behind and color
+        review_text, review_color = '%s unreviewed' % review_commits, review and color
+        ahead_text, ahead_color = '%s ahead' % ahead_commits, ahead and color
+        behind_text, behind_color = '%s behind' % behind_commits, behind and color
 
-        pull_text, pull_color = not_local and (u'\u2049', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
-        push_text, push_color = not_local and (u'\u2049', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))
+        pull_text, pull_color = not tracked and (u'\u2049', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
+        push_text, push_color = not tracked and (u'\u2049', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))
 
         table.add_row([
             AsciiCell(status.upper(), color),
