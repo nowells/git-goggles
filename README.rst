@@ -49,6 +49,8 @@ In the table outputted by git-codereview, each row corresponds to a branch, with
     * red cross: you need to pull
     * question mark: you either don't have a checked out copy of this branch or you need to prune your local tree
 
+* Modified: the last time that HEAD was modified (NOT the last time the review happened)
+
 Installation
 ============
 
