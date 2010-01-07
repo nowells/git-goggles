@@ -51,8 +51,8 @@ def get_status():
         ahead_text, ahead_color = '%s ahead' % ahead_commits, ahead and color
         behind_text, behind_color = '%s behind' % behind_commits, behind and color
 
-        pull_text, pull_color = not tracked and (u'\u2049', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
-        push_text, push_color = not tracked and (u'\u2049', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))
+        pull_text, pull_color = not tracked and (u'\u203D', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
+        push_text, push_color = not tracked and (u'\u203D', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))
 
         table.add_row([
             AsciiCell(status.upper(), color),
