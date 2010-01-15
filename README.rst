@@ -44,17 +44,18 @@ In the table outputted by git-goggles, each row corresponds to a branch, with th
 Installation
 ============
 
-Checkout the project from github XXXaddurlonceitexistsXXX:
+Checkout the project from github http://github.com/nowells/git-goggles
 
 ::
 
-  git clone XXXgiturlXXX
+  git clone git://github.com/nowells/git-goggles.git
 
-Add to your .bashrc or .profile:
+Run setup.py as root
 
 ::
 
-  export PATH=$PATH:/<path_to_git-goggles>/bin
+  cd git-goggles
+  sudo python setup.py install
 
 **Documentation**:
 With `Sphinx <http://sphinx.pocoo.org/>`_ docs deployment: in the docs/ directory, type:

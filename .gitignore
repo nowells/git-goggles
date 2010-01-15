@@ -3,3 +3,6 @@
 \#*#
 *.pyc
 doc/_build/
+MANIFEST
+dist/
+build/
