@@ -2,6 +2,8 @@ import copy
 import os
 import subprocess
 
+from gitgoggles.progress import log
+
 class AccumulatorDict(dict):
     def __init__(self, default, *args, **kwargs):
         self.__default = default
@@ -148,6 +150,8 @@ class Repository(object):
         join = kwargs.pop('join', False)
 
         command = ['git'] + list(args)
+
+        log.info(' '.join(command))
 
         if join:
             p = subprocess.Popen(command)
