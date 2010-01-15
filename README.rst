@@ -57,13 +57,13 @@ Add to your .bashrc or .profile:
   export PATH=$PATH:/<path_to_git-goggles>/bin
 
 **Documentation**:
-With `Sphinx <http://sphinx.pocoo.org/>`_ doc deployment: in the doc/ directory, type:
+With `Sphinx <http://sphinx.pocoo.org/>`_ docs deployment: in the docs/ directory, type:
 
 ::
 
   make html
 
-Then open ``doc/_build/index.html``
+Then open ``docs/_build/index.html``
 
 Usage
 =====

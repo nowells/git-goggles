@@ -3,5 +3,7 @@ include LICENSE
 include AUTHORS
 include MANIFEST.in
 include INSTALL
-recursive-include *.py *.rst
-recursive-include bin
+
+include docs/Makefile
+include docs/conf.py
+recursive-include docs *.rst
