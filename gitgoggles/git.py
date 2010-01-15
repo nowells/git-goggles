@@ -79,7 +79,9 @@ class Branch(Ref):
     def __init__(self, *args, **kwargs):
         super(Branch, self).__init__(*args, **kwargs)
         self.parent_refspec = self.repo.branch_parents.get(self.refspec, self.refspec)
-        self.merge_refspec = self.shortname in ('master', 'staging') and 'refs/remotes/origin/master' or 'refs/remotes/origin/staging'
+        # Find the common merge ancestor to show ahead/behind statistics.
+        master_sha = self.repo.git('show', '--pretty=format:%H', self.repo.master).split('\n')[0].strip()
+        self.merge_refspec = self.repo.git('merge-base', master_sha, self.sha, split=True)[0].strip()
 
     @property
     @memoize
@@ -99,7 +101,8 @@ class Branch(Ref):
     @property
     @memoize
     def behind(self):
-        return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.merge_refspec), split=True))
+        # TODO: find a better way to determine how fare behind we are from our branch "parent"
+        return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master), split=True))
 
 class LocalBranch(Branch):
     """
@@ -137,6 +140,8 @@ class Tag(Ref):
 class Repository(object):
     def __init__(self, path=None):
         self.path = os.path.abspath(path or os.path.curdir)
+        # Hack, make configurable
+        self.master = 'master'
 
     def git(self, *args, **kwargs):
         split = kwargs.pop('split', False)
@@ -160,8 +165,13 @@ class Repository(object):
         return dict([ x.partition('=')[0::2] for x in self.git('config', '--list', split=True) ])
 
     def fetch(self):
-        self.git('fetch')
-        self.git('fetch', '--tags')
+        for remote in self.remotes():
+            self.git('fetch', remote)
+            self.git('fetch', '--tags', remote)
+
+    @memoize
+    def remotes(self):
+        return self.git('remote', split=True)
 
     @memoize
     def refs(self):
