@@ -1,19 +1,9 @@
 #######################
- git-codereview Readme
+ git-goggles Readme
 #######################
 
-git-codereview is a git management utilities that allows you to manage your source code as
+git-goggles is a git management utilities that allows you to manage your source code as
 it evolves through its development lifecycle.
-
-Candidate Names
-===============
-* git-codereview
-* git-branch-manager
-* git-scrutinize
-* git-goggles
-* git-sanity
-* git-peerreview
-* git-slavedriver
 
 Overview
 ========
@@ -26,7 +16,7 @@ This project accomplishes two things:
 Field Reference
 ===============
 
-In the table outputted by git-codereview, each row corresponds to a branch, with the following fields:
+In the table outputted by git-goggles, each row corresponds to a branch, with the following fields:
 
 * Status: the current status of your branch
 
@@ -45,7 +35,7 @@ In the table outputted by git-codereview, each row corresponds to a branch, with
 
 * Pull & Push: whether your branches need to be pushed or pulled to track origin
 
-    * green checkbox: you don't need to pull    
+    * green checkbox: you don't need to pull
     * red cross: you need to pull
     * question mark: you either don't have a checked out copy of this branch or you need to prune your local tree
 
@@ -64,7 +54,7 @@ Add to your .bashrc or .profile:
 
 ::
 
-  export PATH=$PATH:/<path_to_git-codereview>/bin
+  export PATH=$PATH:/<path_to_git-goggles>/bin
 
 **Documentation**:
 With `Sphinx <http://sphinx.pocoo.org/>`_ doc deployment: in the doc/ directory, type:
@@ -82,24 +72,24 @@ Viewing the status of your branches:
 
 ::
 
-  git codereview
+  git goggles
 
 Starting your review process (shows an origin diff):
 
 ::
 
-  git codereview start
+  git goggles codereview
 
 Complete your review process (automatically pushes up):
 
 ::
 
-  git codereview complete
+  git goggles codereview complete
 
 Internals
 =========
 
-git-codereview works by creating and managing special tags called
+git-goggles works by creating and managing special tags called
 'codereview-<branch_name>' and tracking them against HEAD.
 
 The first time a codereview is completed, the tag is created. Subsequent

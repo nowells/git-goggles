@@ -4,13 +4,13 @@ import sys
 from asciitable import AsciiTable, AsciiCell
 from git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
 
+TAG_PREFIX = 'codereview--'
+
 def get_status():
     repo = Repository()
     repo.fetch()
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
-
-    TAG_PREFIX = 'codereview--'
 
     table = AsciiTable(['Status', 'Branch', 'Review', 'Ahead', 'Behind', 'Pull', 'Push', 'Modified'])
 
@@ -91,3 +91,14 @@ def start_review():
         repo.git('diff', '-w', '%s..%s' % (cr_tag, branch), join=True)
     else:
         repo.git('diff', '-w', '%s..%s' % (parent, branch), join=True)
+
+def update_branches():
+    repo = Repository()
+    repo.fetch()
+    branch = repo.branch()
+    refs = repo.branches(TrackingBranch)
+    for branch in refs:
+        if branch.pull:
+            repo.git('checkout', branch.name)
+            repo.git('pull')
+

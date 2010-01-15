@@ -1,19 +1,18 @@
+import sys
+from distutils.core import setup
 import os
-from setuptools import setup, find_packages
 
 version = '0.1'
 
 setup(
-    name='git-utilities',
+    name='git-goggles',
     version=version,
     description='',
     long_description="""""",
     author='Nowell Strite',
     author_email='nowell@strite.org',
-    url='http://github.com/nowells/git-utilities/',
-    packages=find_packages(),
-    zip_safe=False,
-    platforms=["*nix"],
+    url='http://github.com/nowells/git-goggles/',
+    packages=['gitgoggles'],
     license='MIT',
     classifiers=[
         'Intended Audience :: Developers',
@@ -22,4 +21,5 @@ setup(
         'Programming Language :: Python',
         'Topic :: Utilities',
         ],
+    scripts=['bin/git-goggles'],
     )
