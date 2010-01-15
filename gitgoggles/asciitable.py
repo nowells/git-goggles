@@ -8,7 +8,7 @@ except ImportError:
 
 class AsciiCell(object):
     def __init__(self, value, color=None, background=None, reverse=False):
-        self.value = value
+        self.value = isinstance(value, str) and value.decode('utf8', 'ignore') or value
         self.color = color
         self.background = background
         self.attrs = reverse and ['reverse'] or []
