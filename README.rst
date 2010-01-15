@@ -44,6 +44,18 @@ In the table outputted by git-goggles, each row corresponds to a branch, with th
 Installation
 ============
 
+To install from PyPi you should run one of the following commands. (If you use pip for your package installation, you should take a look!)
+
+::
+
+  pip install git-goggles
+
+or
+
+::
+
+  easy_install git-goggles
+
 Checkout the project from github http://github.com/nowells/git-goggles
 
 ::
