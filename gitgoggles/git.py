@@ -24,14 +24,14 @@ def memoize(func):
 class Ref(object):
     def __new__(cls, repo, sha, refspec):
         if cls != Ref:
-            return object.__new__(cls, repo, sha, refspec)
+            return object.__new__(cls)
 
         ref_type, name = refspec[5:].partition("/")[0::2]
         if ref_type in ('heads', 'remotes',):
             return Branch(repo, sha, refspec)
         elif ref_type in ('tags',):
             return Tag(repo, sha, refspec)
-        return object.__new__(cls, repo, sha, refspec)
+        return object.__new__(cls)
 
     def __init__(self, repo, sha, refspec):
         self.repo = repo
@@ -58,7 +58,7 @@ class Ref(object):
 class Branch(Ref):
     def __new__(cls, repo, sha, refspec):
         if cls != Branch:
-            return object.__new__(cls, repo, sha, refspec)
+            return object.__new__(cls)
 
         # This is a local branch, see if it is a tracking branch or a local branch
         if refspec.startswith('refs/heads/'):
@@ -74,7 +74,7 @@ class Branch(Ref):
                 cls = TrackedBranch
             else:
                 cls = PublishedBranch
-        return object.__new__(cls, repo, sha, refspec)
+        return object.__new__(cls)
 
     def __init__(self, *args, **kwargs):
         super(Branch, self).__init__(*args, **kwargs)
