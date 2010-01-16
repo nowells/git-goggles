@@ -26,14 +26,14 @@ def memoize(func):
 class Ref(object):
     def __new__(cls, repo, sha, refspec):
         if cls != Ref:
-            return object.__new__(cls, repo, sha, refspec)
+            return object.__new__(cls)
 
         ref_type, name = refspec[5:].partition("/")[0::2]
         if ref_type in ('heads', 'remotes',):
             return Branch(repo, sha, refspec)
         elif ref_type in ('tags',):
             return Tag(repo, sha, refspec)
-        return object.__new__(cls, repo, sha, refspec)
+        return object.__new__(cls)
 
     def __init__(self, repo, sha, refspec):
         self.repo = repo
@@ -43,10 +43,9 @@ class Ref(object):
         self.ref_type, self.name = refspec[5:].partition("/")[0::2]
         self.shortname = '/' in self.name and self.name.partition("/")[2] or self.name
 
-    @property
-    @memoize
     def modified(self):
         return self.repo.git('show', '--pretty=format:%ar', self.sha).split('\n')[0].strip()
+    modified = property(memoize(modified))
 
     def __unicode__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)
@@ -60,7 +59,7 @@ class Ref(object):
 class Branch(Ref):
     def __new__(cls, repo, sha, refspec):
         if cls != Branch:
-            return object.__new__(cls, repo, sha, refspec)
+            return object.__new__(cls)
 
         # This is a local branch, see if it is a tracking branch or a local branch
         if refspec.startswith('refs/heads/'):
@@ -76,47 +75,46 @@ class Branch(Ref):
                 cls = TrackedBranch
             else:
                 cls = PublishedBranch
-        return object.__new__(cls, repo, sha, refspec)
+        return object.__new__(cls)
 
     def __init__(self, *args, **kwargs):
         super(Branch, self).__init__(*args, **kwargs)
         self.parent_refspec = self.repo.branch_parents.get(self.refspec, self.refspec)
+        # TODO: find a better way to determine parent refspec
         # Find the common merge ancestor to show ahead/behind statistics.
-        master_sha = self.repo.git('show', '--pretty=format:%H', self.repo.master).split('\n')[0].strip()
-        self.merge_refspec = self.repo.git('merge-base', master_sha, self.sha, split=True)[0].strip()
+        master_sha = self.repo.git('show', '--pretty=format:%H', self.repo.master).split('\n')
+        master_sha = master_sha and master_sha[0].strip() or self.sha
+        merge_refspec = self.repo.git('merge-base', master_sha, self.sha, split=True)
+        self.merge_refspec = merge_refspec and merge_refspec[0].strip() or self.refspec
 
-    @property
-    @memoize
     def pull(self):
         return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.parent_refspec), split=True))
+    pull = property(memoize(pull))
 
-    @property
-    @memoize
     def push(self):
         return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.parent_refspec, self.refspec), split=True))
+    push = property(memoize(push))
 
-    @property
-    @memoize
     def ahead(self):
         return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec), split=True))
+    ahead = property(memoize(ahead))
 
-    @property
-    @memoize
     def behind(self):
         # TODO: find a better way to determine how fare behind we are from our branch "parent"
         return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master), split=True))
+    behind = property(memoize(behind))
 
 class LocalBranch(Branch):
     """
     A local branch that is not tracking a published branch.
     """
-    @property
     def push(self):
         return False
+    push = property(push)
 
-    @property
     def pull(self):
         return False
+    pull = property(pull)
 
 class PublishedBranch(Branch):
     """
@@ -163,40 +161,37 @@ class Repository(object):
                 output = filter(lambda x: x, map(lambda x: x.strip(), output.split('\n')))
             return output
 
-    @property
-    @memoize
     def configs(self):
         return dict([ x.partition('=')[0::2] for x in self.git('config', '--list', split=True) ])
+    configs = property(memoize(configs))
 
     def fetch(self):
         for remote in self.remotes():
             self.git('fetch', remote)
             self.git('fetch', '--tags', remote)
 
-    @memoize
     def remotes(self):
         return self.git('remote', split=True)
+    remotes = memoize(remotes)
 
-    @memoize
     def refs(self):
         return [ Ref(self, *x.split()) for x in self.git('show-ref', split=True) ]
+    refs = memoize(refs)
 
-    @memoize
     def branches(self, *types):
         if types:
             return [ x for x in self.refs() if x.__class__ in types ]
         else:
             return [ x for x in self.refs() if isinstance(x, Branch) ]
+    branches = memoize(branches)
 
-    @memoize
     def tags(self):
         return [ x for x in self.refs() if isinstance(x, Tag) ]
+    tags = memoize(tags)
 
     def branch(self):
         return self.git('symbolic-ref', 'HEAD').strip().split('/')[2]
 
-    @property
-    @memoize
     def branch_parents(self):
         parents = {}
         for branch_refspec in [ x.split()[1] for x in self.git('show-ref', '--heads', split=True) ]:
@@ -210,3 +205,4 @@ class Repository(object):
             else:
                 parents[branch_refspec] = parent
         return parents
+    branch_parents = property(memoize(branch_parents))
