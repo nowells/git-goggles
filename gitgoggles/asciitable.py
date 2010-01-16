@@ -1,3 +1,6 @@
+import codecs
+import sys
+
 try:
     from termcolor import colored
 except ImportError:
@@ -5,6 +8,8 @@ except ImportError:
 
     def colored(text, *args, **kwargs):
         return text
+
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 class AsciiCell(object):
     def __init__(self, value, color=None, background=None, reverse=False):
