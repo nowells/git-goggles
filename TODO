@@ -1,6 +1,4 @@
 # Progress status while calculating branch stats.
-# Unicode issues "git goggles | less" on a branch with unicode character in name
 # "git remote prune <remote>" suggestion. Handle the case where a remote branch no longer exists, but git does not know about it yet.
 # Fix unicode printing table spacing
 # Make current "master" branch name configurable to allow for better calculation of ahead/behind
-# DeprecationWarning warnings in Python 2.6
