@@ -5,30 +5,43 @@ import sys
 
 class ProgressStreamHandler(StreamHandler):
     def __init__(self, *args, **kwargs):
-        sys.__stdout__.write('\033[s')
+        self.stdout = sys.stdout
+        self.capture_stdout = StringIO.StringIO()
+        self.spinner = '-/|\\'
+        self.msg = ''
         StreamHandler.__init__(self, *args, **kwargs)
 
-    def emit(self, record):
-        self.__clear_line()
-        sys.__stdout__.write(record.msg)
+    def swap_stdout(self):
+        self.stdout = sys.stdout
+        sys.__stdout__.write('\033[s')
+        sys.stdout = handler.capture_stdout
 
-    def __clear_line(self):
+    def emit(self, record):
+        self.msg = record.msg
+        self.display_message()
+
+    def display_message(self):
+        msg = ' %s   %s' % (self.spinner[0], self.msg)
+        self.spinner = self.spinner[1:] + self.spinner[:1]
+        self.clear_line()
+        sys.__stdout__.write(msg)
+
+    def clear_line(self):
         sys.__stdout__.write('\033[u')
         sys.__stdout__.write('\033[s')
         sys.__stdout__.write('\033[K')
 
+handler = ProgressStreamHandler()
 log = logging.getLogger('progress')
 log.setLevel(logging.INFO)
 
 def enable_progress():
-    stdout = StringIO.StringIO()
-    sys.stdout = stdout
-    log.addHandler(ProgressStreamHandler())
+    handler.swap_stdout()
+    log.addHandler(handler)
 
 def disable_progress():
-    stdout = sys.stdout
-    stdout.seek(0)
-    sys.__stdout__.write('\033[u')
-    sys.__stdout__.write('\033[K')
-    sys.stdout = sys.__stdout__
-    print stdout.read()
+    sys.stdout = handler.stdout
+    sys.stdout.write('\033[u')
+    sys.stdout.write('\033[K')
+    handler.capture_stdout.seek(0)
+    print handler.capture_stdout.read()
