@@ -3,7 +3,7 @@ from gitgoggles.utils import force_unicode, force_str, console
 try:
     from termcolor import colored
 except ImportError:
-    console('You should run "pip install termcolor" to fully utilize these utilities.')
+    print 'You should run "pip install termcolor" to fully utilize these utilities.'
 
     def colored(text, *args, **kwargs):
         return text
