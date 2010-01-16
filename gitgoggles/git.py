@@ -134,10 +134,12 @@ class Repository(object):
             p.communicate()
         else:
             p = subprocess.Popen(command, stdout=subprocess.PIPE)
-            output = force_unicode(p.communicate()[0])
+            (stdout, stderr) = p.communicate(None)
+            stdout = force_unicode(stdout)
+            stderr = force_unicode(stderr)
             if split:
-                output = filter(lambda x: x, map(lambda x: x.strip(), output.split(u'\n')))
-            return output
+                stdout = filter(lambda x: x, map(lambda x: x.strip(), stdout.split(u'\n')))
+            return stdout
 
     def configs(self):
         return dict([ x.partition('=')[0::2] for x in self.git('config', '--list', split=True) ])

@@ -1,10 +1,13 @@
 import copy
 import sys
+import unicodedata
 
 def force_unicode(obj, encoding='utf-8'):
     if isinstance(obj, basestring):
         if not isinstance(obj, unicode):
             obj = unicode(obj, encoding)
+        # Normalize the unicode data to have characters that in NFKD format would be represented by 2 characters, instead of 1.
+        obj = unicodedata.normalize('NFKC', obj)
     return obj
 
 def force_str(obj, encoding='utf-8'):
