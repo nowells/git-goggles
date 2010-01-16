@@ -1,25 +1,7 @@
-import copy
 import os
 import subprocess
 
-class AccumulatorDict(dict):
-    def __init__(self, default, *args, **kwargs):
-        self.__default = default
-
-    def __getitem__(self, key):
-        if key not in self:
-            self[key] = copy.copy(self.__default)
-        return super(AccumulatorDict, self).__getitem__(key)
-
-def memoize(func):
-    def _(self, *args, **kwargs):
-        if not hasattr(self, '__memoize_cache'):
-            self.__memoize_cache = AccumulatorDict(AccumulatorDict({}))
-        key = tuple([ tuple(args), tuple([ tuple([x, y]) for x, y in kwargs.items() ]) ])
-        if key not in self.__memoize_cache[func]:
-            self.__memoize_cache[func][key] = func(self, *args, **kwargs)
-        return self.__memoize_cache[func][key]
-    return _
+from gitgoggles.utils import AccumulatorDict, memoize, force_unicode, force_str
 
 class Ref(object):
     def __new__(cls, repo, sha, refspec):
@@ -152,9 +134,9 @@ class Repository(object):
             p.communicate()
         else:
             p = subprocess.Popen(command, stdout=subprocess.PIPE)
-            output = p.communicate()[0]
+            output = force_unicode(p.communicate()[0])
             if split:
-                output = filter(lambda x: x, map(lambda x: x.strip(), output.split('\n')))
+                output = filter(lambda x: x, map(lambda x: x.strip(), output.split(u'\n')))
             return output
 
     def configs(self):
