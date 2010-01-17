@@ -4,12 +4,12 @@ import sys
 from distutils.core import setup
 import os
 
-version = '0.1.5'
+version = '0.2'
 
 setup(
     name='git-goggles',
     version=version,
-    description="A series of GIT utilities to streamline working with remote branches and reviewing code. Just install and run 'git goggles'",
+    description="A series of GIT utilities to streamline working with remote branches and reviewing code. You can think of git-goggles as 'git branch -a' on steroids. Just install and run 'git goggles'",
     long_description=open('README.rst', 'r').read(),
     author='Nowell Strite',
     author_email='nowell@strite.org',
