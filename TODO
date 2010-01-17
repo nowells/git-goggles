@@ -1,3 +1,2 @@
-# Progress status while calculating branch stats.
 # "git remote prune <remote>" suggestion. Handle the case where a remote branch no longer exists, but git does not know about it yet.
 # Make current "master" branch name configurable to allow for better calculation of ahead/behind
