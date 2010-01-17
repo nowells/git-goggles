@@ -31,7 +31,7 @@ class Ref(object):
         self.shortname = '/' in self.name and self.name.partition("/")[2] or self.name
 
     def modified(self):
-        return self.repo.git('show', '--pretty=format:%ar', self.sha).split('\n')[0].strip()
+        return self.repo.git('log', '-1', '--pretty=format:%ar', self.sha).split('\n')[0].strip()
     modified = property(log_activity(memoize(modified)))
 
     def __unicode__(self):
@@ -71,7 +71,7 @@ class Branch(Ref):
         # Find the common merge ancestor to show ahead/behind statistics.
 
         log.info('Processing %s' % self.shortname)
-        master_sha = self.repo.git('show', '--pretty=format:%H', self.repo.master).split('\n')
+        master_sha = self.repo.git('log', '-1', '--pretty=format:%H', self.repo.master).split('\n')
         master_sha = master_sha and master_sha[0].strip() or self.sha
         merge_refspec = self.repo.git('merge-base', master_sha, self.sha, split=True)
         self.merge_refspec = merge_refspec and merge_refspec[0].strip() or self.refspec
