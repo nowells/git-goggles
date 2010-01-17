@@ -12,14 +12,14 @@ def get_status():
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
 
-    table = AsciiTable(['Status', 'Branch', 'Review', 'Ahead', 'Behind', 'Pull', 'Push', 'Modified'])
+    table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
 
     for ref in refs:
         parent = ref.name in ('staging', 'master',) and 'master' or 'staging'
         codereview_tag = "%s%s" % (TAG_PREFIX, ref.shortname)
 
         color = 'red'
-        status = '?'
+        status = u'?'
         review_commits = 0
         ahead_commits = ref.ahead
         behind_commits = ref.behind
@@ -27,29 +27,29 @@ def get_status():
         push = ref.push
 
         if ref.__class__ == LocalBranch:
-            color, status = 'blue', 'local'
+            color, status = 'blue', u'local'
             review_commits = 0
         elif codereview_tag not in [ x.name for x in tags ]:
-            color, status = 'red', 'new'
+            color, status = 'red', u'new'
             review_commits = ahead_commits
         else:
             review_commits = len(repo.git('log', '--pretty=format:"- %s [%h]"', '%s..%s' % (codereview_tag, ref.refspec), split=True))
             if review_commits:
-                color, status = 'red', 'review'
+                color, status = 'red', u'review'
             else:
                 if ahead_commits:
-                    color, status = 'yellow', 'merge'
+                    color, status = 'yellow', u'merge'
                 else:
-                    color, status = 'green', 'done'
+                    color, status = 'green', u'done'
 
         review = bool(review_commits) or None
         ahead = bool(ahead_commits) or None
         behind = bool(behind_commits) or None
         tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
 
-        review_text, review_color = '%s unreviewed' % review_commits, review and color
-        ahead_text, ahead_color = '%s ahead' % ahead_commits, ahead and color
-        behind_text, behind_color = '%s behind' % behind_commits, behind and color
+        review_text, review_color = u'%s unreviewed' % review_commits, review and color
+        ahead_text, ahead_color = u'%s ahead' % ahead_commits, ahead and color
+        behind_text, behind_color = u'%s behind' % behind_commits, behind and color
 
         pull_text, pull_color = not tracked and (u'\u203D', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
         push_text, push_color = not tracked and (u'\u203D', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))

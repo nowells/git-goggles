@@ -1,5 +1,4 @@
-import codecs
-import sys
+from gitgoggles.utils import force_unicode, force_str, console
 
 try:
     from termcolor import colored
@@ -9,20 +8,13 @@ except ImportError:
     def colored(text, *args, **kwargs):
         return text
 
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-
 class AsciiCell(object):
     def __init__(self, value, color=None, background=None, reverse=False):
-        if isinstance(value, str):
-            self.value = unicode(value, 'utf-8', 'ignore')
-        elif isinstance(value, unicode):
-            self.value = value
-        else:
-            self.value = unicode(value, 'utf-8', 'ignore')
+        self.value = force_unicode(value)
         self.color = color
         self.background = background
         self.attrs = reverse and ['reverse'] or []
-        self.width = len(value)
+        self.width = len(self.value)
 
 class AsciiTable(object):
     def __init__(self, headers):
@@ -45,11 +37,11 @@ class AsciiTable(object):
 
     def _print_horizontal_rule(self):
         bits = []
-        bits.append(u'+')
+        console(u'+')
         for column, width in zip(self.headers, self._widths):
-            bits.append(u'-' * (self.right_padding + self.left_padding + width))
-            bits.append(u'+')
-        print u''.join(bits)
+            console(u'-' * (self.right_padding + self.left_padding + width))
+            console(u'+')
+        console(u'\n')
 
     def _print_headers(self):
         self._print_row(self.headers)
@@ -60,11 +52,11 @@ class AsciiTable(object):
 
     def _print_row(self, row):
         bits = []
-        bits.append(u'|')
+        console(u'|')
         for column, cell, width in zip(self.headers, row, self._widths):
-            bits.append(colored(u' ' * self.left_padding + cell.value.ljust(width) + u' ' * self.right_padding, cell.color, cell.background, attrs=cell.attrs))
-            bits.append(u'|')
-        print u''.join(bits)
+            console(colored(u' ' * self.left_padding + cell.value.ljust(width) + u' ' * self.right_padding, cell.color, cell.background, attrs=cell.attrs))
+            console(u'|')
+        console(u'\n')
 
     def render(self):
         self._calculate_widths()
