@@ -4,6 +4,12 @@ import subprocess
 from gitgoggles.progress import log
 from gitgoggles.utils import AccumulatorDict, memoize, force_unicode, force_str
 
+def log_activity(func):
+    def _(self, *args, **kwargs):
+        log.info('Processing %s' % self.shortname)
+        return func(self, *args, **kwargs)
+    return _
+
 class Ref(object):
     def __new__(cls, repo, sha, refspec):
         if cls != Ref:
@@ -26,7 +32,7 @@ class Ref(object):
 
     def modified(self):
         return self.repo.git('show', '--pretty=format:%ar', self.sha).split('\n')[0].strip()
-    modified = property(memoize(modified))
+    modified = property(log_activity(memoize(modified)))
 
     def __unicode__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)
@@ -63,6 +69,8 @@ class Branch(Ref):
         self.parent_refspec = self.repo.branch_parents.get(self.refspec, self.refspec)
         # TODO: find a better way to determine parent refspec
         # Find the common merge ancestor to show ahead/behind statistics.
+
+        log.info('Processing %s' % self.shortname)
         master_sha = self.repo.git('show', '--pretty=format:%H', self.repo.master).split('\n')
         master_sha = master_sha and master_sha[0].strip() or self.sha
         merge_refspec = self.repo.git('merge-base', master_sha, self.sha, split=True)
@@ -70,20 +78,20 @@ class Branch(Ref):
 
     def pull(self):
         return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.parent_refspec), split=True))
-    pull = property(memoize(pull))
+    pull = property(log_activity(memoize(pull)))
 
     def push(self):
         return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.parent_refspec, self.refspec), split=True))
-    push = property(memoize(push))
+    push = property(log_activity(memoize(push)))
 
     def ahead(self):
         return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec), split=True))
-    ahead = property(memoize(ahead))
+    ahead = property(log_activity(memoize(ahead)))
 
     def behind(self):
         # TODO: find a better way to determine how fare behind we are from our branch "parent"
         return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master), split=True))
-    behind = property(memoize(behind))
+    behind = property(log_activity(memoize(behind)))
 
 class LocalBranch(Branch):
     """
@@ -130,7 +138,7 @@ class Repository(object):
 
         command = ['git'] + list(args)
 
-        log.info(' '.join(command))
+        log.debug(' '.join(command))
 
         if join:
             p = subprocess.Popen(command)
@@ -150,6 +158,7 @@ class Repository(object):
 
     def fetch(self):
         for remote in self.remotes():
+            log.info('Fetching %s' % remote)
             self.git('fetch', remote)
             self.git('fetch', '--tags', remote)
 
