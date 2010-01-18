@@ -1,8 +1,9 @@
 import subprocess
 import sys
 
-from asciitable import AsciiTable, AsciiCell
-from git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
+from gitgoggles.asciitable import AsciiTable, AsciiCell
+from gitgoggles.git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
+from gitgoggles.utils import colored
 
 TAG_PREFIX = 'codereview--'
 
@@ -13,6 +14,9 @@ def get_status():
     tags = repo.tags()
 
     table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
+
+    if repo.configs.get('gitgoggles.colors.disabled', 'False') == 'True':
+        colored.disabled = True
 
     icons = {
         'unknown': repo.configs.get('gitgoggles.icons.unknown', u'\u203D'),
