@@ -2,7 +2,7 @@ import os
 import subprocess
 
 from gitgoggles.progress import log
-from gitgoggles.utils import AccumulatorDict, memoize, force_unicode, force_str
+from gitgoggles.utils import AccumulatorDict, memoize, force_unicode, force_str, console
 
 def log_activity(func):
     def _(self, *args, **kwargs):
@@ -67,14 +67,14 @@ class Branch(Ref):
     def __init__(self, *args, **kwargs):
         super(Branch, self).__init__(*args, **kwargs)
         self.parent_refspec = self.repo.branch_parents.get(self.refspec, self.refspec)
+        log.info('Processing %s' % self.shortname)
         # TODO: find a better way to determine parent refspec
         # Find the common merge ancestor to show ahead/behind statistics.
-
-        log.info('Processing %s' % self.shortname)
-        master_sha = self.repo.git('log', '-1', '--pretty=format:%H', self.repo.master).split('\n')
-        master_sha = master_sha and master_sha[0].strip() or self.sha
-        merge_refspec = self.repo.git('merge-base', master_sha, self.sha, split=True)
-        self.merge_refspec = merge_refspec and merge_refspec[0].strip() or self.refspec
+        self.merge_refspec = None
+        if self.repo.master_sha:
+            merge_refspec = self.repo.git('merge-base', self.repo.master_sha, self.sha, split=True)
+            if merge_refspec:
+                self.merge_refspec = merge_refspec[0].strip()
 
     def pull(self):
         return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.parent_refspec), split=True))
@@ -85,12 +85,16 @@ class Branch(Ref):
     push = property(log_activity(memoize(push)))
 
     def ahead(self):
-        return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec), split=True))
+        if self.merge_refspec:
+            return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec), split=True))
+        return None
     ahead = property(log_activity(memoize(ahead)))
 
     def behind(self):
-        # TODO: find a better way to determine how fare behind we are from our branch "parent"
-        return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master), split=True))
+        if self.merge_refspec:
+            # TODO: find a better way to determine how fare behind we are from our branch "parent"
+            return len(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master), split=True))
+        return None
     behind = property(log_activity(memoize(behind)))
 
 class LocalBranch(Branch):
@@ -131,6 +135,8 @@ class Repository(object):
         self.path = os.path.abspath(path or os.path.curdir)
         # Hack, make configurable
         self.master = 'master'
+        master_sha = self.git('log', '-1', '--pretty=format:%H', self.master).split('\n')
+        self.master_sha = master_sha and master_sha[0].strip() or ''
 
     def git(self, *args, **kwargs):
         split = kwargs.pop('split', False)

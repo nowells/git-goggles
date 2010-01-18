@@ -26,14 +26,16 @@ def get_status():
         pull = ref.pull
         push = ref.push
 
+        if codereview_tag not in [ x.name for x in tags ]:
+            review_commits = len(repo.git('log', '--pretty=format:%H', '%s..%s' % (ref.merge_refspec or '', ref.refspec), split=True))
+        else:
+            review_commits = len(repo.git('log', '--pretty=format:%H', '%s..%s' % (codereview_tag, ref.refspec), split=True))
+
         if ref.__class__ == LocalBranch:
             color, status = 'blue', u'local'
-            review_commits = 0
         elif codereview_tag not in [ x.name for x in tags ]:
             color, status = 'red', u'new'
-            review_commits = ahead_commits
         else:
-            review_commits = len(repo.git('log', '--pretty=format:"- %s [%h]"', '%s..%s' % (codereview_tag, ref.refspec), split=True))
             if review_commits:
                 color, status = 'red', u'review'
             else:
@@ -48,8 +50,8 @@ def get_status():
         tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
 
         review_text, review_color = u'%s unreviewed' % review_commits, review and color
-        ahead_text, ahead_color = u'%s ahead' % ahead_commits, ahead and color
-        behind_text, behind_color = u'%s behind' % behind_commits, behind and color
+        ahead_text, ahead_color = ahead_commits is not None and (u'%s ahead' % ahead_commits, ahead and color) or (u'\u203D', 'yellow',)
+        behind_text, behind_color = behind_commits is not None and (u'%s behind' % behind_commits, behind and color) or (u'\u203D', 'yellow',)
 
         pull_text, pull_color = not tracked and (u'\u203D', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
         push_text, push_color = not tracked and (u'\u203D', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))

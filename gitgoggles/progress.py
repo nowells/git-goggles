@@ -2,12 +2,13 @@ import atexit
 import logging
 import StringIO
 import sys
+from gitgoggles.utils import console, force_unicode
 
 class ProgressStreamHandler(logging.StreamHandler):
     def __init__(self, *args, **kwargs):
         self._stdout = sys.stdout
         self._capture_stdout = StringIO.StringIO()
-        self.spinner = '-/|\\'
+        self.spinner = '-\\|/'
         self.msg = ''
         self.max_length = 0
         logging.StreamHandler.__init__(self, *args, **kwargs)
@@ -20,8 +21,7 @@ class ProgressStreamHandler(logging.StreamHandler):
         sys.__stdout__.write(''.ljust(self.max_length))
         sys.__stdout__.write('\n')
         sys.stdout = self._stdout
-        self._capture_stdout.seek(0)
-        print self._capture_stdout.read()
+        console(force_unicode(self._capture_stdout.getvalue()))
 
     def emit(self, record):
         if self.msg != record.msg:
