@@ -10,7 +10,7 @@ TAG_PREFIX = 'codereview--'
 def get_status():
     repo = Repository()
 
-    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+    if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
         repo.fetch()
 
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
@@ -18,7 +18,7 @@ def get_status():
 
     table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
 
-    if repo.configs.get('gitgoggles.colors', 'True') == 'False':
+    if repo.configs.get('gitgoggles.colors', 'true') == 'false':
         colored.disabled = True
 
     icons = {
@@ -35,7 +35,9 @@ def get_status():
         }
 
     for ref in refs:
-        parent = ref.name in ('staging', 'master',) and 'master' or 'staging'
+        if repo.configs.get('gitgoggles.ignore.%s' % ref.shortname, 'false') == 'true':
+            continue
+
         codereview_tag = "%s%s" % (TAG_PREFIX, ref.shortname)
 
         color = 'red'
@@ -95,25 +97,24 @@ def get_status():
 def complete_review():
     repo = Repository()
 
-    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+    if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
         repo.fetch()
 
     branch = repo.branch()
     repo.git('tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
     repo.git('push', '--tags')
     print 'Created tag %s%s' % (TAG_PREFIX, branch)
-    repo.git('checkout', 'staging')
-    print 'Switched back to staging branch.'
 
 def start_review():
     repo = Repository()
 
-    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+    if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
         repo.fetch()
 
     branch = repo.branch()
     tags = repo.tags()
 
+    # TODO: remove assumption of base branch
     parent = branch in ('staging', 'master',) and 'master' or 'staging'
 
     cr_tag = '%s%s' % (TAG_PREFIX, branch)
@@ -126,7 +127,7 @@ def start_review():
 def update_branches():
     repo = Repository()
 
-    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+    if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
         repo.fetch()
 
     branch = repo.branch()

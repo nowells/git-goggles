@@ -110,13 +110,13 @@ Disable automatic fetching from all remote servers.
 
 ::
 
-  git config --global gitgoggles.fetch False
+  git config --global gitgoggles.fetch false
 
 Disable colorized output
 
 ::
 
-  git config --global gitgoggles.colors False
+  git config --global gitgoggles.colors false
 
 Alter the symbols used to display success, failure, unknown states
 
