@@ -9,7 +9,10 @@ TAG_PREFIX = 'codereview--'
 
 def get_status():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
 
@@ -91,7 +94,10 @@ def get_status():
 
 def complete_review():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     branch = repo.branch()
     repo.git('tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
     repo.git('push', '--tags')
@@ -101,7 +107,10 @@ def complete_review():
 
 def start_review():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     branch = repo.branch()
     tags = repo.tags()
 
@@ -116,7 +125,10 @@ def start_review():
 
 def update_branches():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     branch = repo.branch()
     refs = repo.branches(TrackingBranch)
     for branch in refs:
