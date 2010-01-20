@@ -18,7 +18,7 @@ def get_status():
 
     table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
 
-    if repo.configs.get('gitgoggles.colors.disabled', 'False') == 'True':
+    if repo.configs.get('gitgoggles.colors', 'True') == 'False':
         colored.disabled = True
 
     icons = {
