@@ -1,18 +1,38 @@
 import subprocess
 import sys
 
-from asciitable import AsciiTable, AsciiCell
-from git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
+from gitgoggles.asciitable import AsciiTable, AsciiCell
+from gitgoggles.git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
+from gitgoggles.utils import colored
 
 TAG_PREFIX = 'codereview--'
 
 def get_status():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
 
     table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
+
+    if repo.configs.get('gitgoggles.colors.disabled', 'False') == 'True':
+        colored.disabled = True
+
+    icons = {
+        'unknown': repo.configs.get('gitgoggles.icons.unknown', u'\u203D'),
+        'success': repo.configs.get('gitgoggles.icons.success', u'\u2714'),
+        'failure': repo.configs.get('gitgoggles.icons.failure', u'\u2718'),
+        }
+    colors = {
+        'local': repo.configs.get('gitgoggles.colors.local', 'cyan'),
+        'new': repo.configs.get('gitgoggles.colors.new', 'red'),
+        'review': repo.configs.get('gitgoggles.colors.review', 'red'),
+        'merge': repo.configs.get('gitgoggles.colors.merge', 'yellow'),
+        'done': repo.configs.get('gitgoggles.colors.done', 'green'),
+        }
 
     for ref in refs:
         parent = ref.name in ('staging', 'master',) and 'master' or 'staging'
@@ -35,29 +55,29 @@ def get_status():
             review_commits = None
 
         if ref.__class__ == LocalBranch:
-            color, status = 'blue', u'local'
+            color, status = colors['local'], u'local'
         elif codereview_tag not in [ x.name for x in tags ]:
-            color, status = 'red', u'new'
+            color, status = colors['new'], u'new'
         else:
             if review_commits:
-                color, status = 'red', u'review'
+                color, status = colors['review'], u'review'
             else:
                 if ahead_commits:
-                    color, status = 'yellow', u'merge'
+                    color, status = colors['merge'], u'merge'
                 else:
-                    color, status = 'green', u'done'
+                    color, status = colors['done'], u'done'
 
         review = bool(review_commits) or None
         ahead = bool(ahead_commits) or None
         behind = bool(behind_commits) or None
         tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
 
-        review_text, review_color = review_commits is not None and (u'%s unreviewed' % review_commits, review and color) or (u'\u203D', 'yellow',)
-        ahead_text, ahead_color = ahead_commits is not None and (u'%s ahead' % ahead_commits, ahead and color) or (u'\u203D', 'yellow',)
-        behind_text, behind_color = behind_commits is not None and (u'%s behind' % behind_commits, behind and color) or (u'\u203D', 'yellow',)
+        review_text, review_color = review_commits is not None and (u'%s unreviewed' % review_commits, review and color) or (icons['unknown'], 'yellow',)
+        ahead_text, ahead_color = ahead_commits is not None and (u'%s ahead' % ahead_commits, ahead and color) or (icons['unknown'], 'yellow',)
+        behind_text, behind_color = behind_commits is not None and (u'%s behind' % behind_commits, behind and color) or (icons['unknown'], 'yellow',)
 
-        pull_text, pull_color = not tracked and (u'\u203D', 'yellow',) or (pull and (u'\u2718', 'red',) or (u'\u2714', 'green',))
-        push_text, push_color = not tracked and (u'\u203D', 'yellow',) or (push and (u'\u2718', 'red',) or (u'\u2714', 'green',))
+        pull_text, pull_color = not tracked and (icons['unknown'], 'yellow',) or (pull and (icons['failure'], 'red',) or (icons['success'], 'green',))
+        push_text, push_color = not tracked and (icons['unknown'], 'yellow',) or (push and (icons['failure'], 'red',) or (icons['success'], 'green',))
 
         table.add_row([
             AsciiCell(status.upper(), color),
@@ -74,7 +94,10 @@ def get_status():
 
 def complete_review():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     branch = repo.branch()
     repo.git('tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
     repo.git('push', '--tags')
@@ -84,7 +107,10 @@ def complete_review():
 
 def start_review():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     branch = repo.branch()
     tags = repo.tags()
 
@@ -99,7 +125,10 @@ def start_review():
 
 def update_branches():
     repo = Repository()
-    repo.fetch()
+
+    if repo.configs.get('gitgoggles.fetch', 'True') != 'False':
+        repo.fetch()
+
     branch = repo.branch()
     refs = repo.branches(TrackingBranch)
     for branch in refs:

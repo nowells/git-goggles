@@ -1,12 +1,4 @@
-from gitgoggles.utils import force_unicode, force_str, console
-
-try:
-    from termcolor import colored
-except ImportError:
-    print 'You should run "pip install termcolor" to fully utilize these utilities.'
-
-    def colored(text, *args, **kwargs):
-        return text
+from gitgoggles.utils import force_unicode, force_str, console, colored
 
 class AsciiCell(object):
     def __init__(self, value, color=None, background=None, reverse=False):

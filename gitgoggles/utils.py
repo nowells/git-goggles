@@ -2,6 +2,24 @@ import copy
 import sys
 import unicodedata
 
+def disable_colored_func(text, *args, **kwargs):
+    return text
+
+try:
+    from termcolor import colored as colored_func
+except ImportError:
+    print 'You should run "pip install termcolor" to fully utilize these utilities.'
+    colored_func = disable_colored_func
+
+class Colored(object):
+    disabled = False
+    def __call__(self, *args, **kwargs):
+        if self.disabled:
+            return disable_colored_func(*args, **kwargs)
+        return colored_func(*args, **kwargs)
+
+colored = Colored()
+
 def force_unicode(obj, encoding='utf-8'):
     if isinstance(obj, basestring):
         if not isinstance(obj, unicode):
