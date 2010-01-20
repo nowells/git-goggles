@@ -101,6 +101,41 @@ Complete your review process (automatically pushes up):
 
   git goggles codereview complete
 
+Configuration
+=============
+
+You can set a few configuration variables to alter to way git-goggles works out of the box.
+
+Disable automatic fetching from all remote servers.
+
+::
+
+  git config --global gitgoggles.fetch False
+
+Disable colorized output
+
+::
+
+  git config --global gitgoggles.colors False
+
+Alter the symbols used to display success, failure, unknown states
+
+::
+
+  git config --global gitgoggles.icons.success "OK"
+  git config --global gitgoggles.icons.failure "FAIL"
+  git config --global gitgoggles.icons.unknown "N/A"
+
+Alter the colors of branch states. The available colors are [grey, red, green, yellow, blue, magenta, cyan, white]
+
+::
+
+  git config --global gitgoggles.colors.local cyan
+  git config --global gitgoggles.colors.new red
+  git config --global gitgoggles.colors.review red
+  git config --global gitgoggles.colors.merge yellow
+  git config --global gitgoggles.colors.done green
+
 Internals
 =========
 
