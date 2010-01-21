@@ -1,4 +1,5 @@
 import copy
+import subprocess
 import sys
 import unicodedata
 
@@ -55,3 +56,16 @@ def memoize(func):
             self.__memoize_cache[func][key] = func(self, *args, **kwargs)
         return self.__memoize_cache[func][key]
     return _
+
+def terminal_dimensions():
+    try:
+        # This probably does not work on windows, but it should work just about
+        # everywhere else.
+        p = subprocess.Popen(['stty', 'size'], stdout=subprocess.PIPE)
+        (stdout, stderr) = p.communicate(None)
+        stdout = force_unicode(stdout)
+        stderr = force_unicode(stderr)
+        rows, columns = [ int(x) for x in stdout.split() ]
+    except:
+        rows, columns = 40, 79
+    return rows, columns

@@ -16,7 +16,22 @@ def get_status():
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
 
-    table = AsciiTable([u'Status', u'Branch', u'Review', u'Ahead', u'Behind', u'Pull', u'Push', u'Modified'])
+    BRANCH_WIDTH = repo.configs.get('gitgoggles.table.branch-width')
+    MODIFIED_WIDTH = repo.configs.get('gitgoggles.table.modified-width')
+    LEFT_PADDING = repo.configs.get('gitgoggles.table.left-padding', 0)
+    RIGHT_PADDING = repo.configs.get('gitgoggles.table.right-padding', 0)
+    HORIZONTAL_RULE = repo.configs.get('gitgoggles.table.horizontal-rule', 'false') != 'false'
+
+    table = AsciiTable([
+        AsciiCell('Status'),
+        AsciiCell('Branch', width=BRANCH_WIDTH),
+        AsciiCell('Review'),
+        AsciiCell('Ahead'),
+        AsciiCell('Behind'),
+        AsciiCell('Pull'),
+        AsciiCell('Push'),
+        AsciiCell('Modified', width=MODIFIED_WIDTH),
+        ], LEFT_PADDING, RIGHT_PADDING, HORIZONTAL_RULE)
 
     if repo.configs.get('gitgoggles.colors', 'true') == 'false':
         colored.disabled = True
@@ -83,13 +98,13 @@ def get_status():
 
         table.add_row([
             AsciiCell(status.upper(), color),
-            AsciiCell(ref.name),
+            AsciiCell(ref.name, width=BRANCH_WIDTH),
             AsciiCell(review_text, review_color, reverse=review),
             AsciiCell(ahead_text, ahead_color, reverse=ahead),
             AsciiCell(behind_text, behind_color, reverse=behind),
             AsciiCell(pull_text, pull_color),
             AsciiCell(push_text, push_color),
-            AsciiCell(ref.modified),
+            AsciiCell(ref.modified, width=MODIFIED_WIDTH),
             ])
 
     table.render()
