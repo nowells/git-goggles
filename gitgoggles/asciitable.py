@@ -3,14 +3,18 @@ import math
 from gitgoggles.utils import force_unicode, force_str, console, colored
 
 class AsciiCell(object):
-    def __init__(self, value, color=None, background=None, reverse=False, width=None, align='left'):
+    def __init__(self, value, color=None, background=None, reverse=False, width=None, align='left', resizable=False):
         self.value = force_unicode(value)
         self.color = color
         self.align = align
+        self.resizable = resizable
         self.background = background
         self.attrs = reverse and ['reverse'] or []
         self.width = width and int(width) or len(self.value)
-        self.lines = int(math.ceil(len(self.value) / float(self.width)))
+
+    def lines(self):
+        return int(math.ceil(len(self.value) / float(self.width)))
+    lines = property(lines)
 
     def line(self, num):
         return self.value[num * self.width:(1 + num) * self.width]
@@ -27,7 +31,13 @@ class AsciiRow(object):
     def __init__(self, *cells):
         super(AsciiRow, self).__init__(self)
         self.cells = [ isinstance(x, AsciiCell) and x or AsciiCell(x) for x in cells ]
-        self.lines = max([ x.lines for x in self.cells ])
+
+    def lines(self):
+        return max([ x.lines for x in self.cells ])
+    lines = property(lines)
+
+    def __getitem__(self, index):
+        return self.cells[index]
 
     def __iter__(self):
         for cell in self.cells:
@@ -37,13 +47,14 @@ class AsciiRow(object):
         return len(self.cells)
 
 class AsciiTable(object):
-    def __init__(self, headers, left_padding=None, right_padding=None, horizontal_rule=True):
+    def __init__(self, headers, left_padding=None, right_padding=None, horizontal_rule=True, max_width=None):
         self.headers = AsciiRow(*headers)
         self.rows = []
         self._widths = [ x.width for x in self.headers ]
         self.left_padding = left_padding and int(left_padding) or 0
         self.right_padding = right_padding and int(right_padding) or 0
         self.horizontal_rule = horizontal_rule
+        self.max_width = max_width
 
     def add_row(self, data):
         if len(data) != len(self.headers):
@@ -96,3 +107,12 @@ class AsciiTable(object):
         for row in self.rows:
             for column, cell in enumerate(row):
                 self._widths[column] = max(self._widths[column], cell.width)
+
+        width = sum([ x for x in self._widths ]) + ((self.left_padding + self.right_padding) * len(self._widths)) + len(self._widths) + 1
+        if self.max_width and width > self.max_width:
+            print width
+            difference = width - self.max_width
+            # TODO: being lazy right now, but should recalculate resizable columns widths based on percentage of current length (longer columns give up more)
+            self._widths[1] = max(self._widths[1] - difference, 5)
+            for row in self.rows + [ self.headers ]:
+                row[1].width = self._widths[1]

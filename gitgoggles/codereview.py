@@ -4,7 +4,7 @@ import sys
 
 from gitgoggles.asciitable import AsciiTable, AsciiCell
 from gitgoggles.git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
-from gitgoggles.utils import colored
+from gitgoggles.utils import colored, terminal_dimensions
 
 TAG_PREFIX = 'codereview--'
 
@@ -22,16 +22,18 @@ def get_status():
     RIGHT_PADDING = repo.configs.get('gitgoggles.table.right-padding', 0)
     HORIZONTAL_RULE = repo.configs.get('gitgoggles.table.horizontal-rule', 'false') != 'false'
 
+    TERMINAL_ROWS, TERMINAL_COLUMNS = terminal_dimensions()
+
     table = AsciiTable([
         AsciiCell('Status'),
-        AsciiCell('Branch', width=BRANCH_WIDTH),
+        AsciiCell('Branch', width=BRANCH_WIDTH, resizable=True),
         AsciiCell('Review'),
         AsciiCell('Ahead'),
         AsciiCell('Behind'),
         AsciiCell('Pull'),
         AsciiCell('Push'),
         AsciiCell('Mod'),
-        ], LEFT_PADDING, RIGHT_PADDING, HORIZONTAL_RULE)
+        ], LEFT_PADDING, RIGHT_PADDING, HORIZONTAL_RULE, TERMINAL_COLUMNS)
 
     if repo.configs.get('gitgoggles.colors', 'true') == 'false':
         colored.disabled = True
@@ -108,7 +110,7 @@ def get_status():
 
         table.add_row([
             AsciiCell(status.upper(), color),
-            AsciiCell(ref.name, width=BRANCH_WIDTH),
+            AsciiCell(ref.name, width=BRANCH_WIDTH, resizable=True),
             AsciiCell(review_text, review_color, reverse=review, align='right'),
             AsciiCell(ahead_text, ahead_color, reverse=ahead, align='right'),
             AsciiCell(behind_text, behind_color, reverse=behind, align='right'),
