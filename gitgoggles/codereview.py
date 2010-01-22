@@ -30,7 +30,7 @@ def get_status():
         AsciiCell('Behind'),
         AsciiCell('Pull'),
         AsciiCell('Push'),
-        AsciiCell('Modified'),
+        AsciiCell('Mod'),
         ], LEFT_PADDING, RIGHT_PADDING, HORIZONTAL_RULE)
 
     if repo.configs.get('gitgoggles.colors', 'true') == 'false':
