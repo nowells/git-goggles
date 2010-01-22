@@ -38,7 +38,9 @@ class Ref(object):
 
     def timedelta(self):
         delta = datetime.datetime.now() - self.modified
-        if delta.days >= 1:
+        if delta.days > 365:
+            return '-%sy' % round(delta.days / 365.0, 1)
+        elif delta.days >= 1:
             return '-%sd' % delta.days
         elif delta.seconds >= 3600:
             return '-%sh' % (delta.seconds / 3600)

@@ -19,7 +19,7 @@ class ProgressStreamHandler(logging.StreamHandler):
 
     def uncapture_stdout(self):
         sys.__stdout__.write(''.ljust(self.max_length))
-        sys.__stdout__.write('\n')
+        sys.__stdout__.write('\r')
         sys.stdout = self._stdout
         console(force_unicode(self._capture_stdout.getvalue()))
 
