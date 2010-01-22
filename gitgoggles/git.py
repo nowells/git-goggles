@@ -1,3 +1,4 @@
+import datetime
 import os
 import subprocess
 
@@ -31,8 +32,19 @@ class Ref(object):
         self.shortname = '/' in self.name and self.name.partition("/")[2] or self.name
 
     def modified(self):
-        return self.repo.git('log', '-1', '--pretty=format:%ar', self.sha).split('\n')[0].strip()
+        timestamp = float(self.repo.git('log', '-1', '--pretty=format:%at', self.sha).split('\n')[0].strip())
+        return datetime.datetime.fromtimestamp(timestamp)
     modified = property(log_activity(memoize(modified)))
+
+    def timedelta(self):
+        delta = datetime.datetime.now() - self.modified
+        if delta.days >= 1:
+            return '-%sd' % delta.days
+        elif delta.seconds >= 3600:
+            return '-%sh' % (delta.seconds / 3600)
+        else:
+            return '-%sm' % (delta.seconds / 60)
+    timedelta = property(timedelta)
 
     def __unicode__(self):
         return '<%s %s>' % (self.__class__.__name__, self.name)

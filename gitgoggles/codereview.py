@@ -1,3 +1,4 @@
+import datetime
 import subprocess
 import sys
 
@@ -89,22 +90,32 @@ def get_status():
         behind = bool(behind_commits) or None
         tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
 
-        review_text, review_color = review_commits is not None and (u'%s unreviewed' % review_commits, review and color) or (icons['unknown'], 'yellow',)
+        review_text, review_color = review_commits is not None and (u'%s ahead' % review_commits, review and color) or (icons['unknown'], 'yellow',)
         ahead_text, ahead_color = ahead_commits is not None and (u'%s ahead' % ahead_commits, ahead and color) or (icons['unknown'], 'yellow',)
         behind_text, behind_color = behind_commits is not None and (u'%s behind' % behind_commits, behind and color) or (icons['unknown'], 'yellow',)
 
         pull_text, pull_color = not tracked and (icons['unknown'], 'yellow',) or (pull and (icons['failure'], 'red',) or (icons['success'], 'green',))
         push_text, push_color = not tracked and (icons['unknown'], 'yellow',) or (push and (icons['failure'], 'red',) or (icons['success'], 'green',))
 
+        delta = datetime.date.today() - ref.modified.date()
+        if delta <= datetime.timedelta(days=1):
+            modified_color = 'cyan'
+        elif delta <= datetime.timedelta(days=7):
+            modified_color = 'green'
+        elif delta < datetime.timedelta(days=31):
+            modified_color = 'yellow'
+        else:
+            modified_color = 'red'
+
         table.add_row([
             AsciiCell(status.upper(), color),
             AsciiCell(ref.name, width=BRANCH_WIDTH),
-            AsciiCell(review_text, review_color, reverse=review),
-            AsciiCell(ahead_text, ahead_color, reverse=ahead),
-            AsciiCell(behind_text, behind_color, reverse=behind),
-            AsciiCell(pull_text, pull_color),
-            AsciiCell(push_text, push_color),
-            AsciiCell(ref.modified, width=MODIFIED_WIDTH),
+            AsciiCell(review_text, review_color, reverse=review, align='right'),
+            AsciiCell(ahead_text, ahead_color, reverse=ahead, align='right'),
+            AsciiCell(behind_text, behind_color, reverse=behind, align='right'),
+            AsciiCell(pull_text, pull_color, align='center'),
+            AsciiCell(push_text, push_color, align='center'),
+            AsciiCell(ref.timedelta, modified_color, width=MODIFIED_WIDTH, align='right'),
             ])
 
     table.render()

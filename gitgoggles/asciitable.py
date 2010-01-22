@@ -3,9 +3,10 @@ import math
 from gitgoggles.utils import force_unicode, force_str, console, colored
 
 class AsciiCell(object):
-    def __init__(self, value, color=None, background=None, reverse=False, width=None):
+    def __init__(self, value, color=None, background=None, reverse=False, width=None, align='left'):
         self.value = force_unicode(value)
         self.color = color
+        self.align = align
         self.background = background
         self.attrs = reverse and ['reverse'] or []
         self.width = width and int(width) or len(self.value)
@@ -13,6 +14,14 @@ class AsciiCell(object):
 
     def line(self, num):
         return self.value[num * self.width:(1 + num) * self.width]
+
+    def pad(self, text, width):
+        if self.align == 'right':
+            return text.rjust(width)
+        elif self.align == 'center':
+            return text.center(width)
+        else:
+            return text.ljust(width)
 
 class AsciiRow(object):
     def __init__(self, *cells):
@@ -71,7 +80,7 @@ class AsciiTable(object):
         for line in xrange(row.lines):
             console(u'|')
             for cell, width in zip(row, self._widths):
-                console(colored(u' ' * self.left_padding + cell.line(line).ljust(width) + u' ' * self.right_padding, cell.color, cell.background, attrs=cell.attrs))
+                console(colored(u' ' * self.left_padding + cell.pad(cell.line(line), width) + u' ' * self.right_padding, cell.color, cell.background, attrs=cell.attrs))
                 console(u'|')
             console(u'\n')
 
