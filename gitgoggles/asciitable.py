@@ -29,7 +29,7 @@ class AsciiCell(object):
 
 class AsciiRow(object):
     def __init__(self, *cells):
-        super(AsciiRow, self).__init__(self)
+        super(AsciiRow, self).__init__()
         self.cells = [ isinstance(x, AsciiCell) and x or AsciiCell(x) for x in cells ]
 
     def lines(self):
