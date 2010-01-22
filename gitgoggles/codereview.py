@@ -27,12 +27,12 @@ def get_status():
     table = AsciiTable([
         AsciiCell('Status'),
         AsciiCell('Branch', width=BRANCH_WIDTH, resizable=True),
-        AsciiCell('Review'),
-        AsciiCell('Ahead'),
-        AsciiCell('Behind'),
+        AsciiCell('Review', align='right'),
+        AsciiCell('Ahead', align='right'),
+        AsciiCell('Behind', align='right'),
         AsciiCell('Pull'),
         AsciiCell('Push'),
-        AsciiCell('Mod'),
+        AsciiCell('Mod', align='right'),
         ], LEFT_PADDING, RIGHT_PADDING, HORIZONTAL_RULE, TERMINAL_COLUMNS)
 
     if repo.configs.get('gitgoggles.colors', 'true') == 'false':
