@@ -18,7 +18,6 @@ def get_status():
     tags = repo.tags()
 
     BRANCH_WIDTH = repo.configs.get('gitgoggles.table.branch-width')
-    MODIFIED_WIDTH = repo.configs.get('gitgoggles.table.modified-width')
     LEFT_PADDING = repo.configs.get('gitgoggles.table.left-padding', 0)
     RIGHT_PADDING = repo.configs.get('gitgoggles.table.right-padding', 0)
     HORIZONTAL_RULE = repo.configs.get('gitgoggles.table.horizontal-rule', 'false') != 'false'
@@ -31,7 +30,7 @@ def get_status():
         AsciiCell('Behind'),
         AsciiCell('Pull'),
         AsciiCell('Push'),
-        AsciiCell('Modified', width=MODIFIED_WIDTH),
+        AsciiCell('Modified'),
         ], LEFT_PADDING, RIGHT_PADDING, HORIZONTAL_RULE)
 
     if repo.configs.get('gitgoggles.colors', 'true') == 'false':
@@ -115,7 +114,7 @@ def get_status():
             AsciiCell(behind_text, behind_color, reverse=behind, align='right'),
             AsciiCell(pull_text, pull_color, align='center'),
             AsciiCell(push_text, push_color, align='center'),
-            AsciiCell(ref.timedelta, modified_color, width=MODIFIED_WIDTH, align='right'),
+            AsciiCell(ref.timedelta, modified_color, align='right'),
             ])
 
     table.render()

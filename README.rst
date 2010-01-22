@@ -136,6 +136,25 @@ Alter the colors of branch states. The available colors are [grey, red, green, y
   git config --global gitgoggles.colors.merge yellow
   git config --global gitgoggles.colors.done green
 
+Alter the width of branch column to turn on wordwrap.
+
+::
+
+  git config --global gitgoggles.table.branch-width 15
+
+Alter the table cell padding (defaults to 0)
+
+::
+
+  git config --global gitgoggles.table.left-padding 1
+  git config --global gitgoggles.table.right-padding 1
+
+Alter the display of horizontal rule between rows of table (default false)
+
+::
+
+  git config --global gitgoggles.table.horizontal-rule true
+
 Internals
 =========
 
