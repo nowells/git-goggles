@@ -110,7 +110,6 @@ class AsciiTable(object):
 
         width = sum([ x for x in self._widths ]) + ((self.left_padding + self.right_padding) * len(self._widths)) + len(self._widths) + 1
         if self.max_width and width > self.max_width:
-            print width
             difference = width - self.max_width
             # TODO: being lazy right now, but should recalculate resizable columns widths based on percentage of current length (longer columns give up more)
             self._widths[1] = max(self._widths[1] - difference, 5)
