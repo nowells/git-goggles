@@ -129,7 +129,6 @@ def complete_review():
 
     branch = repo.branch()
     repo.git('tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
-    repo.git('push', '--tags')
     print 'Created tag %s%s' % (TAG_PREFIX, branch)
 
 def start_review():
@@ -163,4 +162,3 @@ def update_branches():
         if branch.pull:
             repo.git('checkout', branch.name)
             repo.git('pull')
-
