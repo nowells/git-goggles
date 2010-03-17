@@ -67,9 +67,9 @@ def get_status():
 
         if ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch):
             if codereview_tag not in [ x.name for x in tags ]:
-                review_commits = len(repo.git('log', '--pretty=format:%H', '%s..%s' % (ref.merge_refspec or '', ref.refspec), split=True))
+                review_commits = len(repo.git('log', '--no-merges', '--pretty=format:%H', '%s..%s' % (ref.merge_refspec or '', ref.refspec), split=True))
             else:
-                review_commits = len(repo.git('log', '--pretty=format:%H', '%s..%s' % (codereview_tag, ref.refspec), split=True))
+                review_commits = len(repo.git('log', '--no-merges', '--pretty=format:%H', '%s..%s' % (codereview_tag, ref.refspec), split=True))
         else:
             review_commits = None
 
