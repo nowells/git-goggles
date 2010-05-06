@@ -4,7 +4,7 @@ import sys
 
 from gitgoggles.asciitable import AsciiTable, AsciiCell
 from gitgoggles.git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
-from gitgoggles.utils import colored, terminal_dimensions
+from gitgoggles.utils import colored, terminal_dimensions, console
 
 TAG_PREFIX = 'codereview--'
 
@@ -16,6 +16,42 @@ def get_status():
 
     refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
+
+    console(colored('# Working Tree: ', 'magenta'))
+    console(colored(repo.branch(), 'cyan'))
+    console(u'\n')
+
+    uncommitted, changed, untracked, stashed = repo.status()
+    if uncommitted or changed or untracked or stashed:
+        table = AsciiTable(['', ''], 2, 0, False, border_characters=[u'', u'', u''])
+
+        if uncommitted:
+            table.add_row([
+                AsciiCell('Uncommitted', 'green'),
+                AsciiCell(str(len(uncommitted)), align='right'),
+                ])
+
+        if changed:
+            table.add_row([
+                AsciiCell('Changed', 'red'),
+                AsciiCell(str(len(changed)), align='right'),
+                ])
+
+        if untracked:
+            table.add_row([
+                AsciiCell('Untracked', 'yellow'),
+                AsciiCell(str(len(untracked)), align='right'),
+                ])
+
+        if stashed:
+            table.add_row([
+                AsciiCell('Stashed', 'cyan'),
+                AsciiCell(str(len(stashed)), align='right'),
+                ])
+
+        table.render()
+
+    console('\n')
 
     BRANCH_WIDTH = repo.configs.get('gitgoggles.table.branch-width')
     LEFT_PADDING = repo.configs.get('gitgoggles.table.left-padding', 0)
@@ -119,6 +155,7 @@ def get_status():
             AsciiCell(ref.timedelta, modified_color, align='right'),
             ])
 
+    console(colored('# Branches\n', 'magenta'))
     table.render()
 
 def complete_review():

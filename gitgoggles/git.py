@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import subprocess
 
 from gitgoggles.progress import log
@@ -172,6 +173,24 @@ class Repository(object):
                 stdout = filter(lambda x: x, map(lambda x: x.strip(), stdout.split(u'\n')))
             return stdout
 
+    def status(self):
+        UNCOMMITTED_RE = re.compile(r'^[MDA]')
+        CHANGED_RE = re.compile(r'^ [MDA]')
+        UNTRACKED_RE = re.compile(r'^\?\?')
+        uncommitted, changed, untracked, stashed = [], [], [], []
+        for entry in self.git('status', '--porcelain').split(u'\n'):
+            filename = entry[3:]
+            if UNCOMMITTED_RE.match(entry):
+                uncommitted.append(filename)
+            elif CHANGED_RE.match(entry):
+                changed.append(filename)
+            elif UNTRACKED_RE.match(entry):
+                untracked.append(filename)
+
+        stashed = [ x for x in self.git('stash', 'list').split(u'\n') if x ]
+
+        return uncommitted, changed, untracked, stashed
+
     def configs(self):
         return dict([ x.partition('=')[0::2] for x in self.git('config', '--list', split=True) ])
     configs = property(memoize(configs))
@@ -179,8 +198,12 @@ class Repository(object):
     def fetch(self):
         for remote in self.remotes():
             log.info('Fetching %s' % remote)
+            # Fetch updates
             self.git('fetch', remote)
+            # Fetch tags (force update of replaced tags)
             self.git('fetch', '--tags', remote)
+            # Prune stale remote tracking branch references
+            self.git('remote', 'prune', remote)
 
     def remotes(self):
         return self.git('remote', split=True)
