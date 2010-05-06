@@ -155,7 +155,6 @@ def get_status():
             AsciiCell(ref.timedelta, modified_color, align='right'),
             ])
 
-    console(colored('# Branches\n', 'magenta'))
     table.render()
 
 def complete_review():
