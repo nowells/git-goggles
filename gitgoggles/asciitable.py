@@ -13,7 +13,9 @@ class AsciiCell(object):
         self.width = width and int(width) or len(self.value)
 
     def lines(self):
-        return int(math.ceil(len(self.value) / float(self.width)))
+        if self.width:
+            return int(math.ceil(len(self.value) / float(self.width)))
+        return self.width
     lines = property(lines)
 
     def line(self, num):
@@ -47,7 +49,7 @@ class AsciiRow(object):
         return len(self.cells)
 
 class AsciiTable(object):
-    def __init__(self, headers, left_padding=None, right_padding=None, horizontal_rule=True, max_width=None):
+    def __init__(self, headers, left_padding=None, right_padding=None, horizontal_rule=True, max_width=None, border_characters=[u'+', u'|', u'-']):
         self.headers = AsciiRow(*headers)
         self.rows = []
         self._widths = [ x.width for x in self.headers ]
@@ -55,6 +57,9 @@ class AsciiTable(object):
         self.right_padding = right_padding and int(right_padding) or 0
         self.horizontal_rule = horizontal_rule
         self.max_width = max_width
+        self.border_corner = border_characters[0]
+        self.border_vertical = border_characters[1]
+        self.border_horizontal = border_characters[2]
 
     def add_row(self, data):
         if len(data) != len(self.headers):
@@ -68,12 +73,12 @@ class AsciiTable(object):
         self._print()
 
     def _print_horizontal_rule(self):
-        bits = []
-        console(u'+')
-        for column, width in zip(self.headers, self._widths):
-            console(u'-' * (self.right_padding + self.left_padding + width))
-            console(u'+')
-        console(u'\n')
+        if self.border_corner or self.border_horizontal:
+            console(self.border_corner)
+            for column, width in zip(self.headers, self._widths):
+                console(self.border_horizontal * (self.right_padding + self.left_padding + width))
+                console(self.border_corner)
+            console(u'\n')
 
     def _print_headers(self):
         self._print_horizontal_rule()
@@ -87,12 +92,11 @@ class AsciiTable(object):
                 self._print_horizontal_rule()
 
     def _print_row(self, row):
-        bits = []
         for line in xrange(row.lines):
-            console(u'|')
+            console(self.border_vertical)
             for cell, width in zip(row, self._widths):
                 console(colored(u' ' * self.left_padding + cell.pad(cell.line(line), width) + u' ' * self.right_padding, cell.color, cell.background, attrs=cell.attrs))
-                console(u'|')
+                console(self.border_vertical)
             console(u'\n')
 
     def render(self):
