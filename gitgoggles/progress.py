@@ -22,6 +22,7 @@ class ProgressStreamHandler(logging.StreamHandler):
         sys.__stdout__.write('\r')
         sys.stdout = self._stdout
         console(force_unicode(self._capture_stdout.getvalue()))
+        self._capture_stdout = StringIO.StringIO()
 
     def emit(self, record):
         if self.msg != record.msg:
@@ -32,8 +33,9 @@ class ProgressStreamHandler(logging.StreamHandler):
             sys.__stdout__.write(force_str(msg.ljust(self.max_length)))
             sys.__stdout__.write('\r')
 
+handler = ProgressStreamHandler()
+
 def enable_progress():
-    handler = ProgressStreamHandler()
     log.addHandler(handler)
     log.setLevel(logging.INFO)
     handler.capture_stdout()

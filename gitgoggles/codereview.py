@@ -5,17 +5,12 @@ import sys
 from gitgoggles.asciitable import AsciiTable, AsciiCell
 from gitgoggles.git import Repository, TrackingBranch, LocalBranch, PublishedBranch, TrackedBranch
 from gitgoggles.utils import colored, terminal_dimensions, console
+from gitgoggles.progress import handler
 
 TAG_PREFIX = 'codereview--'
 
 def get_status():
     repo = Repository()
-
-    if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
-        repo.fetch()
-
-    refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
-    tags = repo.tags()
 
     console(colored('# Working Tree: ', 'magenta'))
     console(colored(repo.branch(), 'cyan'))
@@ -52,6 +47,15 @@ def get_status():
         table.render()
 
     console('\n')
+
+    handler.uncapture_stdout()
+    handler.capture_stdout()
+
+    if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
+        repo.fetch()
+
+    refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
+    tags = repo.tags()
 
     BRANCH_WIDTH = repo.configs.get('gitgoggles.table.branch-width')
     LEFT_PADDING = repo.configs.get('gitgoggles.table.left-padding', 0)
