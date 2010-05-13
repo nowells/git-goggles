@@ -6,7 +6,7 @@ import os
 from gitgoggles.codereview import get_status, complete_review, start_review, update_branches
 from gitgoggles.progress import enable_progress
 
-if __name__ == "__main__":
+def handle_command():
     if not os.path.exists('.git'):
         print 'Not within a git repository.'
         sys.exit(1)
@@ -24,3 +24,10 @@ if __name__ == "__main__":
             update_branches()
         else:
             print 'usage: git goggles [codereview|codereview complete|update]'
+
+if __name__ == "__main__":
+    try:
+        handle_command()
+    except KeyboardInterrupt:
+        print 'Exiting.'
+        sys.exit(1)

@@ -33,7 +33,7 @@ class Ref(object):
         self.shortname = '/' in self.name and self.name.partition("/")[2] or self.name
 
     def modified(self):
-        timestamp = float(self.repo.git('log', '-1', '--pretty=format:%at', self.sha).split('\n')[0].strip())
+        timestamp = float(self.repo.shell('git', 'log', '-1', '--pretty=format:%at', self.sha).split[0].strip())
         return datetime.datetime.fromtimestamp(timestamp)
     modified = property(log_activity(memoize(modified)))
 
@@ -87,28 +87,28 @@ class Branch(Ref):
         # Find the common merge ancestor to show ahead/behind statistics.
         self.merge_refspec = None
         if self.repo.master_sha:
-            merge_refspec = self.repo.git('merge-base', self.repo.master_sha, self.sha, split=True)
+            merge_refspec = self.repo.shell('git', 'merge-base', self.repo.master_sha, self.sha).split
             if merge_refspec:
                 self.merge_refspec = merge_refspec[0].strip()
 
     def pull(self):
-        return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.parent_refspec), split=True))
+        return bool(self.repo.shell('git', 'log', '--pretty=format:%H', '%s..%s' % (self.refspec, self.parent_refspec)).split)
     pull = property(log_activity(memoize(pull)))
 
     def push(self):
-        return bool(self.repo.git('log', '--pretty=format:%H', '%s..%s' % (self.parent_refspec, self.refspec), split=True))
+        return bool(self.repo.shell('git', 'log', '--pretty=format:%H', '%s..%s' % (self.parent_refspec, self.refspec)).split)
     push = property(log_activity(memoize(push)))
 
     def ahead(self):
         if self.merge_refspec:
-            return len(self.repo.git('log', '--no-merges', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec), split=True))
+            return len(self.repo.shell('git', 'log', '--no-merges', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec)).split)
         return None
     ahead = property(log_activity(memoize(ahead)))
 
     def behind(self):
         if self.merge_refspec:
             # TODO: find a better way to determine how fare behind we are from our branch "parent"
-            return len(self.repo.git('log', '--no-merges', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master), split=True))
+            return len(self.repo.shell('git', 'log', '--no-merges', '--pretty=format:%H', '%s..%s' % (self.refspec, self.repo.master)).split)
         return None
     behind = property(log_activity(memoize(behind)))
 
@@ -150,35 +150,42 @@ class Repository(object):
         self.path = os.path.abspath(path or os.path.curdir)
         # Hack, make configurable
         self.master = 'master'
-        master_sha = self.git('log', '-1', '--pretty=format:%H', self.master).split('\n')
+        master_sha = self.shell('git', 'log', '-1', '--pretty=format:%H', self.master).split
         self.master_sha = master_sha and master_sha[0].strip() or ''
 
-    def git(self, *args, **kwargs):
-        split = kwargs.pop('split', False)
+    def shell(self, *args, **kwargs):
+        exceptions = kwargs.pop('exceptions', False)
         join = kwargs.pop('join', False)
 
-        command = ['git'] + list(args)
+        if kwargs:
+            raise Exception('Unsupported kwargs provided to function.')
 
-        log.debug(' '.join(command))
+        log.debug(' '.join(args))
 
         if join:
-            p = subprocess.Popen(command)
-            p.communicate()
+            process = subprocess.Popen(args, cwd=self.path)
+            process.communicate()
         else:
-            p = subprocess.Popen(command, stdout=subprocess.PIPE)
-            (stdout, stderr) = p.communicate(None)
-            stdout = force_unicode(stdout)
-            stderr = force_unicode(stderr)
-            if split:
-                stdout = filter(lambda x: x, map(lambda x: x.strip(), stdout.split(u'\n')))
-            return stdout
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=self.path)
+            stdout, stderr = process.communicate()
+            process.stdout = stdout and force_unicode(stdout.strip()) or u''
+            process.stderr = stderr and force_unicode(stderr.strip()) or u''
+            process.split = filter(lambda x: x, map(lambda x: x.strip(), process.stdout.split(u'\n')))
+
+            if process.returncode != 0:
+                message = '%s: %s: %s' % (process.returncode, process.stderr, process.stdout)
+                log.debug(message)
+                if exceptions:
+                    raise Exception(message)
+
+            return process
 
     def status(self):
         UNCOMMITTED_RE = re.compile(r'^[MDA]')
         CHANGED_RE = re.compile(r'^ [MDA]')
         UNTRACKED_RE = re.compile(r'^\?\?')
         uncommitted, changed, untracked, stashed = [], [], [], []
-        for entry in self.git('status', '--porcelain').split(u'\n'):
+        for entry in self.shell('git', 'status', '--porcelain').split:
             filename = entry[3:]
             if UNCOMMITTED_RE.match(entry):
                 uncommitted.append(filename)
@@ -187,30 +194,31 @@ class Repository(object):
             elif UNTRACKED_RE.match(entry):
                 untracked.append(filename)
 
-        stashed = [ x for x in self.git('stash', 'list').split(u'\n') if x ]
+        stashed = [ x for x in self.shell('git', 'stash', 'list').split if x ]
 
         return uncommitted, changed, untracked, stashed
 
     def configs(self):
-        return dict([ x.partition('=')[0::2] for x in self.git('config', '--list', split=True) ])
+        return dict([ x.partition('=')[0::2] for x in self.shell('git', 'config', '--list').split ])
     configs = property(memoize(configs))
 
     def fetch(self):
         for remote in self.remotes():
             log.info('Fetching %s' % remote)
             # Fetch updates
-            self.git('fetch', remote)
+            self.shell('git', 'fetch', remote)
             # Fetch tags (force update of replaced tags)
-            self.git('fetch', '--tags', remote)
+            self.shell('git', 'fetch', '--tags', remote)
             # Prune stale remote tracking branch references
-            self.git('remote', 'prune', remote)
+            self.shell('git', 'remote', 'prune', remote)
 
     def remotes(self):
-        return self.git('remote', split=True)
+        log.info('Retreiving list of remotes')
+        return self.shell('git', 'remote').split
     remotes = memoize(remotes)
 
     def refs(self):
-        return [ Ref(self, *x.split()) for x in self.git('show-ref', split=True) ]
+        return [ Ref(self, *x.split()) for x in self.shell('git', 'show-ref').split ]
     refs = memoize(refs)
 
     def branches(self, *types):
@@ -225,11 +233,14 @@ class Repository(object):
     tags = memoize(tags)
 
     def branch(self):
-        return self.git('symbolic-ref', 'HEAD').strip().split('/')[2]
+        try:
+            return self.shell('git', 'symbolic-ref', 'HEAD').stdout.split('/')[2]
+        except:
+            return self.shell('git', 'rev-parse', '--short', 'HEAD').stdout
 
     def branch_parents(self):
         parents = {}
-        for branch_refspec in [ x.split()[1] for x in self.git('show-ref', '--heads', split=True) ]:
+        for branch_refspec in [ x.split()[1] for x in self.shell('git', 'show-ref', '--heads').split ]:
             branch_name = branch_refspec.split('/')[2]
             remote = self.configs.get('branch.%s.remote' % branch_name, '.')
             parent = self.configs.get('branch.%s.merge' % branch_name, '')
