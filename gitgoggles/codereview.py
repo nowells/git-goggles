@@ -107,9 +107,9 @@ def get_status():
 
         if ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch):
             if codereview_tag not in [ x.name for x in tags ]:
-                review_commits = len(repo.git('log', '--no-merges', '--pretty=format:%H', '%s..%s' % (ref.merge_refspec or '', ref.refspec), split=True))
+                review_commits = len(repo.shell('git', 'log', '--no-merges', '--pretty=format:%H', '%s..%s' % (ref.merge_refspec or '', ref.refspec)).split)
             else:
-                review_commits = len(repo.git('log', '--no-merges', '--pretty=format:%H', '%s..%s' % (codereview_tag, ref.refspec), split=True))
+                review_commits = len(repo.shell('git', 'log', '--no-merges', '--pretty=format:%H', '%s..%s' % (codereview_tag, ref.refspec)).split)
         else:
             review_commits = None
 
@@ -168,7 +168,7 @@ def complete_review():
         repo.fetch()
 
     branch = repo.branch()
-    repo.git('tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
+    repo.shell('git', 'tag', '-a', '%s%s' % (TAG_PREFIX, branch), '-f', '-m', 'creating code review for branch %s' % branch)
     print 'Created tag %s%s' % (TAG_PREFIX, branch)
 
 def start_review():
@@ -186,9 +186,9 @@ def start_review():
     cr_tag = '%s%s' % (TAG_PREFIX, branch)
 
     if cr_tag in [ x.name for x in tags ]:
-        repo.git('diff', '-w', '%s..%s' % (cr_tag, branch), join=True)
+        repo.shell('git', 'diff', '-w', '%s..%s' % (cr_tag, branch), join=True)
     else:
-        repo.git('diff', '-w', '%s..%s' % (parent, branch), join=True)
+        repo.shell('git', 'diff', '-w', '%s..%s' % (parent, branch), join=True)
 
 def update_branches():
     repo = Repository()
@@ -200,5 +200,5 @@ def update_branches():
     refs = repo.branches(TrackingBranch)
     for branch in refs:
         if branch.pull:
-            repo.git('checkout', branch.name)
-            repo.git('pull')
+            repo.shell('git', 'checkout', branch.name)
+            repo.shell('git', 'pull')
