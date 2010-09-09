@@ -65,7 +65,7 @@ class Branch(Ref):
 
         # This is a local branch, see if it is a tracking branch or a local branch
         if refspec.startswith('refs/heads/'):
-            remote = repo.configs.get('branch.%s.remote' % refspec.rpartition('/')[2], '.')
+            remote = repo.configs.get('branch.%s.remote' % '/'.join(refspec.split('/')[2:]), '.')
             remote = remote != '.' and remote or None
             if remote is None:
                 cls = LocalBranch
@@ -234,18 +234,18 @@ class Repository(object):
 
     def branch(self):
         try:
-            return self.shell('git', 'symbolic-ref', 'HEAD').stdout.split('/')[2]
+            return '/'.join(self.shell('git', 'symbolic-ref', 'HEAD').stdout.split('/')[2:])
         except:
             return self.shell('git', 'rev-parse', '--short', 'HEAD').stdout
 
     def branch_parents(self):
         parents = {}
         for branch_refspec in [ x.split()[1] for x in self.shell('git', 'show-ref', '--heads').split ]:
-            branch_name = branch_refspec.split('/')[2]
+            branch_name = '/'.join(branch_refspec.split('/')[2:])
             remote = self.configs.get('branch.%s.remote' % branch_name, '.')
             parent = self.configs.get('branch.%s.merge' % branch_name, '')
             if remote != '.' and parent:
-                parent = 'refs/remotes/%s/%s' % (remote, parent.split('/')[2])
+                parent = 'refs/remotes/%s/%s' % (remote, '/'.join(parent.split('/')[2:]))
                 parents[branch_refspec] = parent
                 parents[parent] = branch_refspec
             else:
