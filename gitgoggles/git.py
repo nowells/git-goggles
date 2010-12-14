@@ -203,14 +203,8 @@ class Repository(object):
     configs = property(memoize(configs))
 
     def fetch(self):
-        for remote in self.remotes():
-            log.info('Fetching %s' % remote)
-            # Fetch updates
-            self.shell('git', 'fetch', remote)
-            # Fetch tags (force update of replaced tags)
-            self.shell('git', 'fetch', '--tags', remote)
-            # Prune stale remote tracking branch references
-            self.shell('git', 'remote', 'prune', remote)
+        log.info('Fetching updates.')
+        self.shell('git', 'remote', 'update', '--prune')
 
     def remotes(self):
         log.info('Retreiving list of remotes')
