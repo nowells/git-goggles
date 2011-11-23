@@ -106,7 +106,7 @@ class Branch(Ref):
 
     def ahead(self):
         if self.merge_refspec:
-            return len(self.repo.shell('git', 'log', '--no-merges', '--pretty=format:%H', '%s..%s' % (self.merge_refspec, self.refspec)).split)
+            return len(self.repo.shell('git', 'log', '--no-merges', '--pretty=format:%H', '%s..%s' % (self.repo.master, self.refspec)).split)
         return None
     ahead = property(log_activity(memoize(ahead)))
 
