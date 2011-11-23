@@ -130,6 +130,8 @@ def get_status():
             else:
                 modified_color = 'red'
 
+            ahead_color = behind_color = modified_color
+
             table.add_row([
                 AsciiCell(ref.name, width=BRANCH_WIDTH, resizable=True),
                 AsciiCell(ahead_text, ahead_color, reverse=ahead, align='right'),
