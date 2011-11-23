@@ -34,9 +34,9 @@ class Ref(object):
 
     def modified(self):
         try:
-            timestamp = float(self.repo.shell('git', 'log', '--no-merges', '-1', '--pretty=format:%at', 'origin/master..%s' % self.sha).split[0].strip())
+            timestamp = float(self.repo.shell('git', 'log', '--no-merges', '-1', '--pretty=format:%at', '%s..%s' % (self.repo.master, self.refspec)).split[0].strip())
         except IndexError:
-            timestamp = float(self.repo.shell('git', 'log', '--no-merges', '-1', '--pretty=format:%at', self.sha).split[0].strip())
+            timestamp = float(self.repo.shell('git', 'log', '--no-merges', '-1', '--pretty=format:%at', self.refspec).split[0].strip())
         return datetime.datetime.fromtimestamp(timestamp)
     modified = property(log_activity(memoize(modified)))
 
@@ -156,8 +156,12 @@ class Repository(object):
     def __init__(self, path=None):
         self.path = os.path.abspath(path or os.path.curdir)
         # Hack, make configurable
-        self.master = 'master'
-        master_sha = self.shell('git', 'log', '-1', '--pretty=format:%H', self.master).split
+        try:
+            self.master = 'origin/master'
+            master_sha = self.shell('git', 'log', '-1', '--pretty=format:%H', self.master, exceptions=True).split
+        except:
+            self.master = 'master'
+            master_sha = self.shell('git', 'log', '-1', '--pretty=format:%H', self.master).split
         self.master_sha = master_sha and master_sha[0].strip() or ''
 
     def shell(self, *args, **kwargs):
