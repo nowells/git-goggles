@@ -33,7 +33,10 @@ class Ref(object):
         self.shortname = '/' in self.name and self.name.partition("/")[2] or self.name
 
     def modified(self):
-        timestamp = float(self.repo.shell('git', 'log', '-1', '--pretty=format:%at', self.sha).split[0].strip())
+        try:
+            timestamp = float(self.repo.shell('git', 'log', '--no-merges', '-1', '--pretty=format:%at', 'origin/master..%s' % self.sha).split[0].strip())
+        except IndexError:
+            timestamp = float(self.repo.shell('git', 'log', '--no-merges', '-1', '--pretty=format:%at', self.sha).split[0].strip())
         return datetime.datetime.fromtimestamp(timestamp)
     modified = property(log_activity(memoize(modified)))
 

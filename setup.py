@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup
 import os
 
-version = '0.2.7'
+version = '0.2.9'
 
 setup(
     name='git-goggles',
