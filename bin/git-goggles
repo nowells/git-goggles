@@ -3,7 +3,7 @@
 import sys
 import os
 
-from gitgoggles.codereview import get_status, complete_review, start_review, update_branches
+from gitgoggles.codereview import get_status, update_branches
 from gitgoggles.progress import enable_progress
 
 def handle_command():
@@ -15,15 +15,10 @@ def handle_command():
         enable_progress()
         get_status()
     elif len(sys.argv) >= 2:
-        if sys.argv[1] == 'codereview':
-            if len(sys.argv) == 2:
-                start_review()
-            else:
-                complete_review()
-        elif sys.argv[1] == 'update':
+        if sys.argv[1] == 'update':
             update_branches()
         else:
-            print 'usage: git goggles [codereview|codereview complete|update]'
+            print 'usage: git goggles [update]'
 
 if __name__ == "__main__":
     try:

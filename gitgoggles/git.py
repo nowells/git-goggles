@@ -59,6 +59,8 @@ class Ref(object):
         return self.__unicode__()
 
 class Branch(Ref):
+    display_name = 'Branch'
+
     def __new__(cls, repo, sha, refspec):
         if cls != Branch:
             return object.__new__(cls)
@@ -116,6 +118,8 @@ class LocalBranch(Branch):
     """
     A local branch that is not tracking a published branch.
     """
+    display_name = 'Local'
+
     def push(self):
         return False
     push = property(push)
@@ -128,19 +132,19 @@ class PublishedBranch(Branch):
     """
     A branch on a remote server that is not being tracked locally.
     """
-    pass
+    display_name = 'Remote'
 
 class TrackingBranch(PublishedBranch):
     """
     A local branch that is tracking a published branch.
     """
-    pass
+    display_name = 'Tracking'
 
 class TrackedBranch(PublishedBranch):
     """
     A branch on a remote server that is being tracked locally.
     """
-    pass
+    display_name = 'Tracked'
 
 class Tag(Ref):
     pass
