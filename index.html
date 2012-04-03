@@ -1,0 +1,202 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on http://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen"/>
+  <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>GIT-Goggles</title>
+  <meta name="description" content="A series of GIT utilities to streamline working with remote branches and reviewing code. git-goggles can be thought of as &quot;git branch -a&quot; on steroids. You can install with &quot;[pip install | easy_install] git-goggles&quot; and then run &quot;git goggles&quot;.">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">GIT-Goggles</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">A series of GIT utilities to streamline working with remote branches and reviewing code. git-goggles can be thought of as &quot;git branch -a&quot; on steroids. You can install with &quot;[pip install | easy_install] git-goggles&quot; and then run &quot;git goggles&quot;.</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/nowells/git-goggles/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/nowells/git-goggles/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/nowells/git-goggles" class="code">fork GIT-Goggles on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>git-goggles Readme</h1>
+
+<p>git-goggles is a git management utilities that allows you to manage your source code as
+it evolves through its development lifecycle.</p>
+
+<h2>Overview</h2>
+
+<p>This project accomplishes two things:</p>
+
+<ul>
+<li>Manage the code review state of your branches</li>
+<li>Gives a snapshot of the where your local branches are vs origin in terms of being ahead / behind on commits</li>
+</ul><p>There is a nice blog post describing the features along with screenshots at <a href="http://bit.ly/git-goggles">http://bit.ly/git-goggles</a></p>
+
+<h2>Field Reference</h2>
+
+<p>In the table outputted by git-goggles, each row corresponds to a branch, with the following fields:</p>
+
+<ul>
+<li>Status: the current status of your branch
+
+<ul>
+<li>new: this is a branch that has never been through the review process</li>
+<li>review: this branch has code that needs to be reviewed</li>
+<li>merge: everything has been reviewed, but needs to be merged into parent (same as done for being ahead)</li>
+<li>done: reviewed and merged (doens't matter if you're behind but you can't be ahead)</li>
+</ul>
+</li>
+<li>Branch: the branch name</li>
+<li>Review: how many commits have taken place since the last review</li>
+<li>Ahead: how many commits are in your local branch that are not in origin</li>
+<li>Behind: how many commits are in origin that are not in your local branch</li>
+<li>Pull &amp; Push: whether your branches need to be pushed or pulled to track origin
+
+<ul>
+<li>green checkbox: you don't need to pull</li>
+<li>red cross: you need to pull</li>
+<li>question mark: you either don't have a checked out copy of this branch or you need to prune your local tree</li>
+</ul>
+</li>
+<li>Modified: the last time that HEAD was modified (NOT the last time the review happened)</li>
+</ul><h2>Installation</h2>
+
+<p>To install from PyPi you should run one of the following commands. (If you use pip for your package installation, you should take a look!)</p>
+
+<pre lang="shell"><code>pip install git-goggles
+</code></pre>
+
+<p>or</p>
+
+<pre lang="shell"><code>easy_install git-goggles
+</code></pre>
+
+<p>Checkout the project from github <a href="http://github.com/nowells/git-goggles">http://github.com/nowells/git-goggles</a></p>
+
+<pre lang="shell"><code>git clone git://github.com/nowells/git-goggles.git
+</code></pre>
+
+<p>Run setup.py as root</p>
+
+<pre lang="shell"><code>cd git-goggles
+sudo python setup.py install
+</code></pre>
+
+<h3>Documentation</h3>
+
+<p>With Sphinx <a href="http://sphinx.pocoo.org/">http://sphinx.pocoo.org/</a> docs deployment: in the docs/ directory, type:</p>
+
+<pre lang="shell"><code>make html
+</code></pre>
+
+<p>Then open <code>docs/_build/index.html</code></p>
+
+<h2>Usage</h2>
+
+<p>Viewing the status of your branches:</p>
+
+<pre lang="shell"><code>git goggles
+</code></pre>
+
+<p>Starting your review process (shows an origin diff):</p>
+
+<pre lang="shell"><code>git goggles codereview
+</code></pre>
+
+<p>Complete your review process (automatically pushes up):</p>
+
+<pre lang="shell"><code>git goggles codereview complete
+</code></pre>
+
+<p>h2. Configuration</p>
+
+<p>You can set a few configuration variables to alter to way git-goggles works out of the box.</p>
+
+<p>Disable automatic fetching from all remote servers.</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.fetch false
+</code></pre>
+
+<p>Disable colorized output</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.colors false
+</code></pre>
+
+<p>Alter the symbols used to display success, failure, unknown states</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.icons.success "OK"
+git config --global gitgoggles.icons.failure "FAIL"
+git config --global gitgoggles.icons.unknown "N/A"
+</code></pre>
+
+<p>Alter the colors of branch states. The available colors are [grey, red, green, yellow, blue, magenta, cyan, white]</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.colors.local cyan
+git config --global gitgoggles.colors.new red
+git config --global gitgoggles.colors.review red
+git config --global gitgoggles.colors.merge yellow
+git config --global gitgoggles.colors.done green
+</code></pre>
+
+<p>Alter the width of branch column to turn on word-wrap.</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.table.branch-width 15
+</code></pre>
+
+<p>Alter the table cell padding (defaults to 0)</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.table.left-padding 1
+git config --global gitgoggles.table.right-padding 1
+</code></pre>
+
+<p>Alter the display of horizontal rule between rows of table (default false)</p>
+
+<pre lang="shell"><code>git config --global gitgoggles.table.horizontal-rule true
+</code></pre>
+
+<h2>Internals</h2>
+
+<p>git-goggles works by creating and managing special tags called
+'codereview-' and tracking them against HEAD.</p>
+
+<p>The first time a codereview is completed, the tag is created. Subsequent
+reviews delete and re-create the tag so that it awlays accurately tracks HEAD.</p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/nowells" class="avatar"><img src="https://secure.gravatar.com/avatar/de51fb712ec94af860ce176c524945d4?s=30&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="48" height="48"/></a> <a href="https://github.com/nowells">nowells</a> maintains <a href="https://github.com/nowells/git-goggles">GIT-Goggles</a></p>
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br/>theme by <a href="http://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/nowells/git-goggles/tarball/master" class="tar">tar</a><a href="https://github.com/nowells/git-goggles/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
