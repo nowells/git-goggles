@@ -53,7 +53,7 @@ def get_status():
     if repo.configs.get('gitgoggles.fetch', 'true') != 'false':
         repo.fetch()
 
-    git_refs = repo.branches(LocalBranch, TrackingBranch, PublishedBranch)
+    git_refs = repo.branches(LocalBranch, TrackedBranch, TrackingBranch, PublishedBranch)
     tags = repo.tags()
 
     BRANCH_WIDTH = repo.configs.get('gitgoggles.table.branch-width')
@@ -88,59 +88,64 @@ def get_status():
         'done': repo.configs.get('gitgoggles.colors.done', 'green'),
         }
 
+    key_func = lambda x: x.shortname
+    git_refs = sorted(git_refs, key=key_func)
+    groups = [ [x, list(y)] for x, y in itertools.groupby(git_refs, key_func) ]
+
     if repo.configs.get('gitgoggles.sorted', 'age') == 'age':
-        git_refs = reversed(sorted(git_refs, key=lambda x: x.modified.date()))
+        groups = reversed(sorted(groups, key=lambda refs: min([ x.modified.date() for x in refs[1] ])))
     else:
-        git_refs = reversed(sorted(git_refs, key=lambda x: x.name))
+        groups = sorted(groups, key=lambda refs: refs[0])
 
-    for ref in git_refs:
-        if repo.configs.get('gitgoggles.ignore.%s' % ref.shortname, 'false') == 'true':
-            continue
+    for name, git_refs in groups:
+        for ref in git_refs:
+            if repo.configs.get('gitgoggles.ignore.%s' % ref.shortname, 'false') == 'true':
+                continue
 
-        color = 'red'
-        ahead_commits = ref.ahead
-        behind_commits = ref.behind
-        pull = ref.pull
-        push = ref.push
+            color = 'red'
+            ahead_commits = ref.ahead
+            behind_commits = ref.behind
+            pull = ref.pull
+            push = ref.push
 
-        if ref.__class__ == LocalBranch:
-            color = colors['local']
-        else:
-            if ahead_commits:
-                color = colors['merge']
+            if ref.__class__ == LocalBranch:
+                color = colors['local']
             else:
-                color = colors['done']
+                if ahead_commits:
+                    color = colors['merge']
+                else:
+                    color = colors['done']
 
-        ahead = bool(ahead_commits) or None
-        behind = bool(behind_commits) or None
-        tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
+            ahead = bool(ahead_commits) or None
+            behind = bool(behind_commits) or None
+            tracked = ref.__class__ in (TrackingBranch, LocalBranch, TrackedBranch)
 
-        ahead_text, ahead_color = ahead_commits is not None and (u'%s ahead' % ahead_commits, ahead and color) or (icons['unknown'], 'yellow',)
-        behind_text, behind_color = behind_commits is not None and (u'%s behind' % behind_commits, behind and color) or (icons['unknown'], 'yellow',)
+            ahead_text, ahead_color = ahead_commits is not None and (u'%s ahead' % ahead_commits, ahead and color) or (icons['unknown'], 'yellow',)
+            behind_text, behind_color = behind_commits is not None and (u'%s behind' % behind_commits, behind and color) or (icons['unknown'], 'yellow',)
 
-        pull_text, pull_color = not tracked and (icons['unknown'], 'yellow',) or (pull and (icons['failure'], 'red',) or (icons['success'], 'green',))
-        push_text, push_color = not tracked and (icons['unknown'], 'yellow',) or (push and (icons['failure'], 'red',) or (icons['success'], 'green',))
+            pull_text, pull_color = not tracked and (icons['unknown'], 'yellow',) or (pull and (icons['failure'], 'red',) or (icons['success'], 'green',))
+            push_text, push_color = not tracked and (icons['unknown'], 'yellow',) or (push and (icons['failure'], 'red',) or (icons['success'], 'green',))
 
-        delta = datetime.date.today() - ref.modified.date()
-        if delta <= datetime.timedelta(days=1):
-            modified_color = 'cyan'
-        elif delta <= datetime.timedelta(days=7):
-            modified_color = 'green'
-        elif delta < datetime.timedelta(days=31):
-            modified_color = 'yellow'
-        else:
-            modified_color = 'red'
+            delta = datetime.date.today() - ref.modified.date()
+            if delta <= datetime.timedelta(days=1):
+                modified_color = 'cyan'
+            elif delta <= datetime.timedelta(days=7):
+                modified_color = 'green'
+            elif delta < datetime.timedelta(days=31):
+                modified_color = 'yellow'
+            else:
+                modified_color = 'red'
 
-        ahead_color = behind_color = modified_color
+            ahead_color = behind_color = modified_color
 
-        table.add_row([
-            AsciiCell(ref.name, width=BRANCH_WIDTH, resizable=True),
-            AsciiCell(ahead_text, ahead_color, reverse=ahead, align='right'),
-            AsciiCell(behind_text, behind_color, reverse=behind, align='right'),
-            AsciiCell(pull_text, pull_color, align='center'),
-            AsciiCell(push_text, push_color, align='center'),
-            AsciiCell(ref.timedelta, modified_color, align='right'),
-            ])
+            table.add_row([
+                AsciiCell(ref.name, width=BRANCH_WIDTH, resizable=True),
+                AsciiCell(ahead_text, ahead_color, reverse=ahead, align='right'),
+                AsciiCell(behind_text, behind_color, reverse=behind, align='right'),
+                AsciiCell(pull_text, pull_color, align='center'),
+                AsciiCell(push_text, push_color, align='center'),
+                AsciiCell(ref.timedelta, modified_color, align='right'),
+                ])
 
     table.render()
 

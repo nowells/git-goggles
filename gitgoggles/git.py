@@ -8,7 +8,7 @@ from gitgoggles.utils import AccumulatorDict, memoize, force_unicode, force_str,
 
 def log_activity(func):
     def _(self, *args, **kwargs):
-        log.info('Processing %s' % self.shortname)
+        log.info('Processing %s' % self.name)
         return func(self, *args, **kwargs)
     return _
 
@@ -30,7 +30,7 @@ class Ref(object):
         self.sha = sha
 
         self.ref_type, self.name = refspec[5:].partition("/")[0::2]
-        self.shortname = '/' in self.name and self.name.partition("/")[2] or self.name
+        self.shortname = re.match('^origin\/', self.name) and self.name.partition("/")[2] or self.name
 
     def modified(self):
         try:
@@ -87,7 +87,7 @@ class Branch(Ref):
     def __init__(self, *args, **kwargs):
         super(Branch, self).__init__(*args, **kwargs)
         self.parent_refspec = self.repo.branch_parents.get(self.refspec, self.refspec)
-        log.info('Processing %s' % self.shortname)
+        log.info('Processing %s' % self.name)
         # TODO: find a better way to determine parent refspec
         # Find the common merge ancestor to show ahead/behind statistics.
         self.merge_refspec = None
@@ -117,6 +117,10 @@ class Branch(Ref):
         return None
     behind = property(log_activity(memoize(behind)))
 
+    @property
+    def tracking(self):
+        return None
+
 class LocalBranch(Branch):
     """
     A local branch that is not tracking a published branch.
@@ -143,11 +147,19 @@ class TrackingBranch(PublishedBranch):
     """
     display_name = 'Tracking'
 
+    @property
+    def tracking(self):
+        return True
+
 class TrackedBranch(PublishedBranch):
     """
     A branch on a remote server that is being tracked locally.
     """
     display_name = 'Tracked'
+
+    @property
+    def tracking(self):
+        return True
 
 class Tag(Ref):
     pass
